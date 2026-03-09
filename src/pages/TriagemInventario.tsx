@@ -5,20 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
   FileSearch, UserCheck, Building2, ClipboardList, Route, CheckCircle2,
-  Plus, Trash2, AlertTriangle, Scale, ChevronRight, ChevronLeft, Gavel
+  Plus, Trash2, AlertTriangle, Scale, ChevronRight, ChevronLeft, Gavel,
+  Search, Shield, Link2
 } from "lucide-react";
 import {
   DadosFalecido, DadosHerdeiro, DadosBemTriagem,
-  ChecklistItem, ViaInventario, TriagemState
+  ChecklistItem, ViaInventario, FlagsLitigio,
+  CessaoDireitosHereditarios, HerancaCumulativa, DiligenciaInvestigativa
 } from "@/types/triagem";
 import { determinarVia, gerarChecklist, ROTEIRO_ETAPAS } from "@/lib/triagem-utils";
+import { gerarDiligencias, CATEGORIAS_DILIGENCIA } from "@/lib/diligencias-investigativas";
 
 const UF_OPTIONS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
@@ -34,6 +37,8 @@ const PARENTESCO_OPTIONS = [
   { value: "mae", label: "Mãe" },
   { value: "irmao", label: "Irmão/Irmã" },
   { value: "sobrinho", label: "Sobrinho(a)" },
+  { value: "tio", label: "Tio(a)" },
+  { value: "primo", label: "Primo(a)" },
   { value: "outro", label: "Outro" },
 ];
 
@@ -45,21 +50,37 @@ const TIPO_BEM_OPTIONS = [
   { value: "investimento", label: "Investimento" },
   { value: "pis_fgts", label: "PIS/FGTS" },
   { value: "inss", label: "INSS" },
+  { value: "quotas_acoes", label: "Quotas/Ações Societárias" },
   { value: "outros", label: "Outros" },
 ];
 
 const initialFalecido: DadosFalecido = {
   nome: "", cpf: "", dataFalecimento: "", estadoCivil: "",
   regimeBens: "", possuiTestamento: null, localFalecimento: "", ufFalecimento: "",
+  ultimoDomicilio: "", ufDomicilio: "", profissao: "",
+};
+
+const initialFlags: FlagsLitigio = {
+  posseExclusivaBens: false, possuidorExclusivo: "", descricaoPosseExclusiva: "",
+  ocultacaoPatrimonial: false, descricaoOcultacao: "",
+  doacaoInoficiosa: false, descricaoDoacaoInoficiosa: "",
+  simulacaoNegocioJuridico: false, descricaoSimulacao: "",
+  alienacaoEmVida: false, descricaoAlienacao: "",
+  cobrancaFrutosAlugueis: false, descricaoFrutos: "",
+  conflitosEntreHerdeiros: false, descricaoConflitos: "",
+  desconhecimentoPatrimonial: false, descricaoDesconhecimento: "",
 };
 
 const STEPS = [
   { icon: UserCheck, label: "Falecido" },
   { icon: UserCheck, label: "Herdeiros" },
   { icon: Building2, label: "Bens" },
-  { icon: Route, label: "Via" },
+  { icon: Shield, label: "Litígio" },
+  { icon: Link2, label: "Cessões / Heranças" },
+  { icon: Scale, label: "Análise" },
   { icon: ClipboardList, label: "Checklist" },
-  { icon: FileSearch, label: "Roteiro" },
+  { icon: Search, label: "Diligências" },
+  { icon: Route, label: "Roteiro" },
 ];
 
 export default function TriagemInventario() {
@@ -67,15 +88,19 @@ export default function TriagemInventario() {
   const [falecido, setFalecido] = useState<DadosFalecido>(initialFalecido);
   const [herdeiros, setHerdeiros] = useState<DadosHerdeiro[]>([]);
   const [bens, setBens] = useState<DadosBemTriagem[]>([]);
+  const [flags, setFlags] = useState<FlagsLitigio>(initialFlags);
+  const [cessoes, setCessoes] = useState<CessaoDireitosHereditarios[]>([]);
+  const [herancasCumulativas, setHerancasCumulativas] = useState<HerancaCumulativa[]>([]);
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [diligencias, setDiligencias] = useState<DiligenciaInvestigativa[]>([]);
   const [roteiroStatus, setRoteiroStatus] = useState<boolean[]>(
     new Array(ROTEIRO_ETAPAS.length).fill(false)
   );
 
   const resultado = useMemo(() => {
     if (herdeiros.length === 0) return null;
-    return determinarVia(falecido, herdeiros);
-  }, [falecido, herdeiros]);
+    return determinarVia(falecido, herdeiros, flags);
+  }, [falecido, herdeiros, flags]);
 
   const via: ViaInventario = resultado?.via ?? "indefinida";
 
@@ -84,17 +109,22 @@ export default function TriagemInventario() {
     return Math.round((checklist.filter((c) => c.concluido).length / checklist.length) * 100);
   }, [checklist]);
 
+  const diligenciasProgress = useMemo(() => {
+    if (diligencias.length === 0) return 0;
+    return Math.round((diligencias.filter((d) => d.concluido).length / diligencias.length) * 100);
+  }, [diligencias]);
+
   const roteiroProgress = useMemo(() => {
     const done = roteiroStatus.filter(Boolean).length;
     return Math.round((done / ROTEIRO_ETAPAS.length) * 100);
   }, [roteiroStatus]);
 
-  // Herdeiro helpers
   const addHerdeiro = () => {
     setHerdeiros([...herdeiros, {
       id: crypto.randomUUID(), nome: "", cpf: "", parentesco: "",
       menor: false, incapaz: false, concorda: true,
       endereco: "", telefone: "", email: "", profissao: "", estadoCivil: "",
+      representante: false, representaDe: "", falecido: false, renunciou: false,
     }]);
   };
 
@@ -106,12 +136,12 @@ export default function TriagemInventario() {
     setHerdeiros(herdeiros.filter((h) => h.id !== id));
   };
 
-  // Bem helpers
   const addBem = () => {
     setBens([...bens, {
       id: crypto.randomUUID(), tipo: "imovel_urbano", descricao: "",
       localizacao: "", uf: "", municipio: "", matriculaRegistro: "",
       valorEstimado: 0, possuiDivida: false, valorDivida: 0,
+      formaAquisicao: "", adquiridoNaConstancia: false, emNomeDe: "",
     }]);
   };
 
@@ -123,10 +153,24 @@ export default function TriagemInventario() {
     setBens(bens.filter((b) => b.id !== id));
   };
 
-  // Gerar checklist ao entrar na etapa 4
+  const addCessao = () => {
+    setCessoes([...cessoes, {
+      id: crypto.randomUUID(), cedente: "", cessionario: "",
+      percentual: 0, formalizada: false, datacessao: "", observacoes: "",
+    }]);
+  };
+
+  const addHerancaCumulativa = () => {
+    setHerancasCumulativas([...herancasCumulativas, {
+      id: crypto.randomUUID(), nomeFalecido: "", dataFalecimento: "",
+      parentescoComDeCujus: "", inventarioAberto: false, numeroProcesso: "", observacoes: "",
+    }]);
+  };
+
   const avancar = () => {
-    if (etapa === 3 && resultado) {
+    if (etapa === 5 && resultado) {
       setChecklist(gerarChecklist(resultado.via));
+      setDiligencias(gerarDiligencias(resultado.natureza, flags));
     }
     setEtapa(Math.min(etapa + 1, STEPS.length - 1));
   };
@@ -140,7 +184,7 @@ export default function TriagemInventario() {
           Triagem de Inventário
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Roteiro completo: análise de via, checklist documental e acompanhamento de diligências.
+          Roteiro completo: análise de via, natureza (consensual/litigiosa), checklist documental, diligências investigativas e acompanhamento.
         </p>
       </div>
 
@@ -191,6 +235,10 @@ export default function TriagemInventario() {
                 <Input type="date" value={falecido.dataFalecimento} onChange={(e) => setFalecido({ ...falecido, dataFalecimento: e.target.value })} />
               </div>
               <div className="space-y-2">
+                <Label>Profissão</Label>
+                <Input value={falecido.profissao} onChange={(e) => setFalecido({ ...falecido, profissao: e.target.value })} />
+              </div>
+              <div className="space-y-2">
                 <Label>Estado Civil</Label>
                 <Select value={falecido.estadoCivil} onValueChange={(v) => setFalecido({ ...falecido, estadoCivil: v })}>
                   <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -218,6 +266,19 @@ export default function TriagemInventario() {
                   </Select>
                 </div>
               )}
+              <div className="space-y-2">
+                <Label>Último Domicílio</Label>
+                <Input value={falecido.ultimoDomicilio} onChange={(e) => setFalecido({ ...falecido, ultimoDomicilio: e.target.value })} placeholder="Cidade" />
+              </div>
+              <div className="space-y-2">
+                <Label>UF do Domicílio</Label>
+                <Select value={falecido.ufDomicilio} onValueChange={(v) => setFalecido({ ...falecido, ufDomicilio: v })}>
+                  <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
+                  <SelectContent>
+                    {UF_OPTIONS.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2">
                 <Label>UF do Falecimento</Label>
                 <Select value={falecido.ufFalecimento} onValueChange={(v) => setFalecido({ ...falecido, ufFalecimento: v })}>
@@ -265,7 +326,7 @@ export default function TriagemInventario() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Herdeiros</CardTitle>
-            <CardDescription>Cadastre todos os herdeiros conhecidos</CardDescription>
+            <CardDescription>Cadastre todos os herdeiros conhecidos — inclua vocação hereditária e representação</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {herdeiros.map((h, idx) => (
@@ -320,7 +381,25 @@ export default function TriagemInventario() {
                     <Checkbox checked={h.concorda} onCheckedChange={(v) => updateHerdeiro(h.id, "concorda", !!v)} />
                     Concorda com a partilha
                   </label>
+                  <label className="flex items-center gap-2 text-xs">
+                    <Checkbox checked={h.renunciou} onCheckedChange={(v) => updateHerdeiro(h.id, "renunciou", !!v)} />
+                    Renunciou à herança
+                  </label>
+                  <label className="flex items-center gap-2 text-xs">
+                    <Checkbox checked={h.falecido} onCheckedChange={(v) => updateHerdeiro(h.id, "falecido", !!v)} />
+                    Pré-morto
+                  </label>
+                  <label className="flex items-center gap-2 text-xs">
+                    <Checkbox checked={h.representante} onCheckedChange={(v) => updateHerdeiro(h.id, "representante", !!v)} />
+                    Herda por representação
+                  </label>
                 </div>
+                {h.representante && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Representa (nome do herdeiro pré-morto)</Label>
+                    <Input value={h.representaDe} onChange={(e) => updateHerdeiro(h.id, "representaDe", e.target.value)} placeholder="Nome do herdeiro que representa" />
+                  </div>
+                )}
               </div>
             ))}
             <Button variant="outline" onClick={addHerdeiro} className="w-full">
@@ -335,7 +414,7 @@ export default function TriagemInventario() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Bens e Direitos</CardTitle>
-            <CardDescription>Cadastre os bens a serem inventariados (conforme formulário DIT)</CardDescription>
+            <CardDescription>Cadastre os bens a serem inventariados</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {bens.map((b, idx) => (
@@ -378,23 +457,43 @@ export default function TriagemInventario() {
                     </Select>
                   </div>
                   <div className="space-y-1">
+                    <Label className="text-xs">Em nome de</Label>
+                    <Input value={b.emNomeDe} onChange={(e) => updateBem(b.id, "emNomeDe", e.target.value)} placeholder="Titular do bem" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Forma de aquisição</Label>
+                    <Select value={b.formaAquisicao} onValueChange={(v) => updateBem(b.id, "formaAquisicao", v)}>
+                      <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="compra_onerosa">Compra onerosa</SelectItem>
+                        <SelectItem value="doacao">Doação</SelectItem>
+                        <SelectItem value="heranca">Herança</SelectItem>
+                        <SelectItem value="usucapiao">Usucapião</SelectItem>
+                        <SelectItem value="outros">Outros</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
                     <Label className="text-xs">Valor estimado (R$)</Label>
                     <Input type="number" value={b.valorEstimado || ""} onChange={(e) => updateBem(b.id, "valorEstimado", Number(e.target.value))} />
                   </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs">Possui dívida?</Label>
-                    <div className="flex items-center gap-2 pt-1">
-                      <Checkbox checked={b.possuiDivida} onCheckedChange={(v) => updateBem(b.id, "possuiDivida", !!v)} />
-                      <span className="text-xs text-muted-foreground">Sim</span>
-                    </div>
-                  </div>
-                  {b.possuiDivida && (
-                    <div className="space-y-1">
-                      <Label className="text-xs">Valor da dívida (R$)</Label>
-                      <Input type="number" value={b.valorDivida || ""} onChange={(e) => updateBem(b.id, "valorDivida", Number(e.target.value))} />
-                    </div>
-                  )}
                 </div>
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex items-center gap-2 text-xs">
+                    <Checkbox checked={b.adquiridoNaConstancia} onCheckedChange={(v) => updateBem(b.id, "adquiridoNaConstancia", !!v)} />
+                    Adquirido na constância do casamento
+                  </label>
+                  <label className="flex items-center gap-2 text-xs">
+                    <Checkbox checked={b.possuiDivida} onCheckedChange={(v) => updateBem(b.id, "possuiDivida", !!v)} />
+                    Possui dívida vinculada
+                  </label>
+                </div>
+                {b.possuiDivida && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Valor da dívida (R$)</Label>
+                    <Input type="number" value={b.valorDivida || ""} onChange={(e) => updateBem(b.id, "valorDivida", Number(e.target.value))} />
+                  </div>
+                )}
               </div>
             ))}
             <Button variant="outline" onClick={addBem} className="w-full">
@@ -404,13 +503,172 @@ export default function TriagemInventario() {
         </Card>
       )}
 
-      {/* Step 3: Via */}
+      {/* Step 3: Flags de Litígio */}
       {etapa === 3 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
+              <Shield className="w-5 h-5 text-primary" />
+              Análise de Litigiosidade
+            </CardTitle>
+            <CardDescription>
+              Identifique elementos que indicam inventário litigioso — ocultação, doações inoficiosas, posse exclusiva, conflitos.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {[
+              { key: "desconhecimentoPatrimonial" as const, label: "Desconhecimento total ou parcial do acervo hereditário", descKey: "descricaoDesconhecimento" as const, placeholder: "Descreva o que se sabe e o que falta apurar..." },
+              { key: "conflitosEntreHerdeiros" as const, label: "Conflito declarado entre herdeiros", descKey: "descricaoConflitos" as const, placeholder: "Descreva a natureza do conflito..." },
+              { key: "ocultacaoPatrimonial" as const, label: "Indícios de ocultação patrimonial", descKey: "descricaoOcultacao" as const, placeholder: "Descreva os indícios de ocultação..." },
+              { key: "doacaoInoficiosa" as const, label: "Possível doação inoficiosa (Art. 2.002, CC)", descKey: "descricaoDoacaoInoficiosa" as const, placeholder: "Descreva a doação e os envolvidos..." },
+              { key: "simulacaoNegocioJuridico" as const, label: "Simulação de negócio jurídico (Art. 167, CC)", descKey: "descricaoSimulacao" as const, placeholder: "Descreva o negócio simulado..." },
+              { key: "alienacaoEmVida" as const, label: "Alienações em vida pelo de cujus (para análise de colação)", descKey: "descricaoAlienacao" as const, placeholder: "Descreva as alienações e beneficiários..." },
+              { key: "posseExclusivaBens" as const, label: "Posse exclusiva de bens por herdeiro ou terceiro", descKey: "descricaoPosseExclusiva" as const, placeholder: "Descreva quem possui e quais bens..." },
+              { key: "cobrancaFrutosAlugueis" as const, label: "Cobrança de frutos civis / aluguéis por posse exclusiva", descKey: "descricaoFrutos" as const, placeholder: "Descreva os frutos, valores estimados e marco temporal..." },
+            ].map((item) => (
+              <div key={item.key} className="space-y-2 p-3 rounded-lg border border-border">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm">{item.label}</Label>
+                  <Switch
+                    checked={flags[item.key]}
+                    onCheckedChange={(v) => setFlags({ ...flags, [item.key]: v })}
+                  />
+                </div>
+                {flags[item.key] && (
+                  <Textarea
+                    value={flags[item.descKey]}
+                    onChange={(e) => setFlags({ ...flags, [item.descKey]: e.target.value })}
+                    placeholder={item.placeholder}
+                    className="text-sm"
+                    rows={3}
+                  />
+                )}
+                {item.key === "posseExclusivaBens" && flags.posseExclusivaBens && (
+                  <div className="space-y-1">
+                    <Label className="text-xs">Nome do possuidor exclusivo</Label>
+                    <Input
+                      value={flags.possuidorExclusivo}
+                      onChange={(e) => setFlags({ ...flags, possuidorExclusivo: e.target.value })}
+                      placeholder="Nome do herdeiro ou terceiro"
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 4: Cessões e Heranças Cumulativas */}
+      {etapa === 4 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Link2 className="w-5 h-5 text-primary" />
+              Cessões de Direitos Hereditários e Heranças Cumulativas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Cessões */}
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-3">Cessões de Direitos Hereditários</h4>
+              <p className="text-xs text-muted-foreground mb-3">
+                Registre cessões realizadas entre herdeiros ou a terceiros (Art. 1.793, CC). A cessão deve ser feita por escritura pública.
+              </p>
+              {cessoes.map((c, idx) => (
+                <div key={c.id} className="border border-border rounded-lg p-3 mb-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium">Cessão {idx + 1}</span>
+                    <Button variant="ghost" size="icon" onClick={() => setCessoes(cessoes.filter(x => x.id !== c.id))}>
+                      <Trash2 className="w-3 h-3 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Cedente</Label>
+                      <Input value={c.cedente} onChange={(e) => setCessoes(cessoes.map(x => x.id === c.id ? { ...x, cedente: e.target.value } : x))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Cessionário</Label>
+                      <Input value={c.cessionario} onChange={(e) => setCessoes(cessoes.map(x => x.id === c.id ? { ...x, cessionario: e.target.value } : x))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Percentual (%)</Label>
+                      <Input type="number" value={c.percentual || ""} onChange={(e) => setCessoes(cessoes.map(x => x.id === c.id ? { ...x, percentual: Number(e.target.value) } : x))} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox checked={c.formalizada} onCheckedChange={(v) => setCessoes(cessoes.map(x => x.id === c.id ? { ...x, formalizada: !!v } : x))} />
+                    <span className="text-xs">Formalizada por escritura pública</span>
+                  </div>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={addCessao}>
+                <Plus className="w-3 h-3 mr-1" /> Adicionar Cessão
+              </Button>
+            </div>
+
+            <Separator />
+
+            {/* Heranças Cumulativas */}
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-3">Heranças Cumulativas</h4>
+              <p className="text-xs text-muted-foreground mb-3">
+                Registre falecimentos anteriores que geram acervos hereditários vinculados (heranças jacentes, acumuladas).
+              </p>
+              {herancasCumulativas.map((hc, idx) => (
+                <div key={hc.id} className="border border-border rounded-lg p-3 mb-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium">Herança Cumulativa {idx + 1}</span>
+                    <Button variant="ghost" size="icon" onClick={() => setHerancasCumulativas(herancasCumulativas.filter(x => x.id !== hc.id))}>
+                      <Trash2 className="w-3 h-3 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Nome do falecido</Label>
+                      <Input value={hc.nomeFalecido} onChange={(e) => setHerancasCumulativas(herancasCumulativas.map(x => x.id === hc.id ? { ...x, nomeFalecido: e.target.value } : x))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Data do falecimento</Label>
+                      <Input type="date" value={hc.dataFalecimento} onChange={(e) => setHerancasCumulativas(herancasCumulativas.map(x => x.id === hc.id ? { ...x, dataFalecimento: e.target.value } : x))} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Parentesco com de cujus</Label>
+                      <Input value={hc.parentescoComDeCujus} onChange={(e) => setHerancasCumulativas(herancasCumulativas.map(x => x.id === hc.id ? { ...x, parentescoComDeCujus: e.target.value } : x))} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 text-xs">
+                      <Checkbox checked={hc.inventarioAberto} onCheckedChange={(v) => setHerancasCumulativas(herancasCumulativas.map(x => x.id === hc.id ? { ...x, inventarioAberto: !!v } : x))} />
+                      Inventário já aberto
+                    </label>
+                    {hc.inventarioAberto && (
+                      <Input
+                        className="text-xs max-w-[200px]"
+                        value={hc.numeroProcesso}
+                        onChange={(e) => setHerancasCumulativas(herancasCumulativas.map(x => x.id === hc.id ? { ...x, numeroProcesso: e.target.value } : x))}
+                        placeholder="Nº do processo"
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+              <Button variant="outline" size="sm" onClick={addHerancaCumulativa}>
+                <Plus className="w-3 h-3 mr-1" /> Adicionar Herança Cumulativa
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 5: Análise da Via */}
+      {etapa === 5 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
               <Scale className="w-5 h-5 text-primary" />
-              Análise da Via do Inventário
+              Análise da Via e Natureza do Inventário
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -430,6 +688,9 @@ export default function TriagemInventario() {
                     <Badge variant={resultado.via === "extrajudicial" ? "default" : "destructive"} className="text-sm px-3 py-1">
                       {resultado.via === "extrajudicial" ? "EXTRAJUDICIAL" : "JUDICIAL"}
                     </Badge>
+                    <Badge variant="outline" className="text-sm px-3 py-1">
+                      {resultado.natureza === "litigioso" ? "LITIGIOSO" : "CONSENSUAL"}
+                    </Badge>
                   </div>
                   <p className="text-sm text-foreground">{resultado.justificativa}</p>
                 </div>
@@ -441,11 +702,11 @@ export default function TriagemInventario() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                     <div className="bg-muted rounded-lg p-3">
                       <p className="text-muted-foreground">Herdeiros</p>
-                      <p className="text-lg font-bold text-foreground">{herdeiros.length}</p>
+                      <p className="text-lg font-bold text-foreground">{herdeiros.filter(h => !h.falecido && !h.renunciou).length}</p>
                     </div>
                     <div className="bg-muted rounded-lg p-3">
-                      <p className="text-muted-foreground">Menores</p>
-                      <p className="text-lg font-bold text-foreground">{herdeiros.filter((h) => h.menor).length}</p>
+                      <p className="text-muted-foreground">Menores/Incapazes</p>
+                      <p className="text-lg font-bold text-foreground">{herdeiros.filter((h) => h.menor || h.incapaz).length}</p>
                     </div>
                     <div className="bg-muted rounded-lg p-3">
                       <p className="text-muted-foreground">Bens cadastrados</p>
@@ -459,14 +720,43 @@ export default function TriagemInventario() {
                     </div>
                   </div>
                 </div>
+
+                {/* Flags ativos */}
+                {resultado.natureza === "litigioso" && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-foreground">Elementos de Litigiosidade Identificados</h4>
+                    <div className="space-y-1">
+                      {flags.desconhecimentoPatrimonial && <Badge variant="outline" className="mr-1">Desconhecimento patrimonial</Badge>}
+                      {flags.ocultacaoPatrimonial && <Badge variant="destructive" className="mr-1">Ocultação patrimonial</Badge>}
+                      {flags.doacaoInoficiosa && <Badge variant="destructive" className="mr-1">Doação inoficiosa</Badge>}
+                      {flags.simulacaoNegocioJuridico && <Badge variant="destructive" className="mr-1">Simulação</Badge>}
+                      {flags.conflitosEntreHerdeiros && <Badge variant="outline" className="mr-1">Conflito entre herdeiros</Badge>}
+                      {flags.posseExclusivaBens && <Badge variant="outline" className="mr-1">Posse exclusiva</Badge>}
+                      {flags.alienacaoEmVida && <Badge variant="outline" className="mr-1">Alienação em vida</Badge>}
+                      {flags.cobrancaFrutosAlugueis && <Badge variant="outline" className="mr-1">Cobrança de frutos</Badge>}
+                    </div>
+                  </div>
+                )}
+
+                {cessoes.length > 0 && (
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold text-foreground">Cessões Registradas: {cessoes.length}</h4>
+                  </div>
+                )}
+
+                {herancasCumulativas.length > 0 && (
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold text-foreground">Heranças Cumulativas: {herancasCumulativas.length}</h4>
+                  </div>
+                )}
               </>
             )}
           </CardContent>
         </Card>
       )}
 
-      {/* Step 4: Checklist */}
-      {etapa === 4 && (
+      {/* Step 6: Checklist */}
+      {etapa === 6 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -517,8 +807,76 @@ export default function TriagemInventario() {
         </Card>
       )}
 
-      {/* Step 5: Roteiro */}
-      {etapa === 5 && (
+      {/* Step 7: Diligências Investigativas */}
+      {etapa === 7 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Search className="w-5 h-5 text-primary" />
+              Diligências Investigativas
+            </CardTitle>
+            <CardDescription>
+              Diligências classificadas por categoria, com fundamento legal e órgão destinatário.
+              <Progress value={diligenciasProgress} className="h-2 mt-2" />
+              <span className="text-xs mt-1 inline-block">{diligenciasProgress}% concluído</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {Object.entries(CATEGORIAS_DILIGENCIA).map(([cat, catLabel]) => {
+              const items = diligencias.filter((d) => d.categoria === cat);
+              if (items.length === 0) return null;
+              return (
+                <div key={cat} className="mb-5">
+                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary inline-block" />
+                    {catLabel}
+                  </h4>
+                  <div className="space-y-2">
+                    {items.map((d) => (
+                      <div key={d.id} className={`p-3 rounded-lg border transition-colors ${
+                        d.concluido ? "bg-primary/5 border-primary/30" : "border-border hover:bg-muted/50"
+                      }`}>
+                        <div className="flex items-start gap-3">
+                          <Checkbox
+                            checked={d.concluido}
+                            onCheckedChange={(v) =>
+                              setDiligencias(diligencias.map((x) =>
+                                x.id === d.id ? { ...x, concluido: !!v } : x
+                              ))
+                            }
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1 space-y-1">
+                            <p className={`text-sm ${d.concluido ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                              {d.descricao}
+                            </p>
+                            <div className="flex flex-wrap gap-1">
+                              <Badge variant="outline" className="text-[10px]">{d.fundamentoLegal}</Badge>
+                              <Badge variant="secondary" className="text-[10px]">{d.orgaoDestinatario}</Badge>
+                              <Badge variant={d.prioridade === "alta" ? "destructive" : d.prioridade === "media" ? "default" : "outline"} className="text-[10px]">
+                                {d.prioridade}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <Separator className="mt-3" />
+                </div>
+              );
+            })}
+            {diligencias.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Volte à etapa de Análise para gerar as diligências automaticamente.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 8: Roteiro */}
+      {etapa === 8 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
