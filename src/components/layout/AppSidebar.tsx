@@ -37,20 +37,17 @@ export function AppSidebar() {
           return (
             <div key={item.label}>
               <Link
-                to={item.badge ? "#" : item.href}
+                to={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "hover:bg-sidebar-accent/50 text-sidebar-foreground"
-                } ${item.badge ? "opacity-50 cursor-not-allowed" : ""}`}
+                }`}
               >
                 <Icon className="w-4 h-4" />
                 <span className="flex-1">{item.label}</span>
-                {item.badge && (
-                  <span className="text-[10px] bg-sidebar-accent px-1.5 py-0.5 rounded">{item.badge}</span>
-                )}
               </Link>
-              {item.children && !item.badge && (
+              {item.children && (
                 <div className="ml-7 mt-1 space-y-0.5">
                   {item.children.map((child) => {
                     const childActive = location.pathname === child.href;
