@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import CalculadoraPartilha from "@/pages/CalculadoraPartilha";
 import CalculadoraItcmd from "@/pages/CalculadoraItcmd";
+import TriagemInventario from "@/pages/TriagemInventario";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
