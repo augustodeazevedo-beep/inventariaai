@@ -1,0 +1,4 @@
+project_id = "zknekmisryyipphoigot"
+
+[functions.gerar-peticao]
+verify_jwt = false
