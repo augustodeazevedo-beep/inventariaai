@@ -6,7 +6,7 @@ const menuItems = [
     label: "Triagem de Inventário",
     icon: FileSearch,
     href: "/triagem",
-    badge: "Em breve",
+    children: [{ label: "Triagem de Inventário", href: "/triagem" }],
   },
   {
     label: "Calculadora de Partilha",
