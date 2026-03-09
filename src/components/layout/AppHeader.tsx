@@ -30,7 +30,7 @@ export function AppHeader() {
             <Menu className="w-5 h-5" />
           </button>
           <div>
-            <p className="text-[10px] text-muted-foreground">InventariA</p>
+            <p className="text-[10px] text-muted-foreground">Inventaria.AI</p>
             <h1 className="font-serif text-lg font-semibold">{title}</h1>
           </div>
         </div>

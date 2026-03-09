@@ -15,7 +15,7 @@ export function AppLayout() {
           <footer className="border-t border-border py-5 px-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="text-center sm:text-left">
-                <p className="text-xs text-muted-foreground">InventariA — Via, Rito e Competência v2.0</p>
+                <p className="text-xs text-muted-foreground">Inventaria.AI — Via, Rito e Competência v2.0</p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-muted-foreground">Desenvolvido por</span>

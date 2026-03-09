@@ -14,7 +14,7 @@ export function AppSidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-sidebar text-sidebar-foreground border-r border-sidebar-border min-h-screen">
       <div className="p-5 border-b border-sidebar-border">
-        <h1 className="font-serif font-bold text-lg gradient-text">InventariA</h1>
+        <h1 className="font-serif font-bold text-lg gradient-text">Inventaria.AI</h1>
         <p className="text-[10px] text-sidebar-foreground/40 mt-0.5">Via, Rito e Competência</p>
       </div>
       <nav className="flex-1 p-3 space-y-1">
