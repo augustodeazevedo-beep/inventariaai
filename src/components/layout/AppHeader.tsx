@@ -1,4 +1,4 @@
-import { Menu, Scale, Calculator, FileSearch, FileText } from "lucide-react";
+import { Menu, Scale, Calculator, FileSearch, FileText, ArrowLeftRight } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 
@@ -6,6 +6,7 @@ const mobileMenuItems = [
   { label: "Triagem de Inventário", icon: FileSearch, href: "/triagem" },
   { label: "Calculadora de Partilha", icon: Scale, href: "/" },
   { label: "Calculadora de ITCMD", icon: Calculator, href: "/itcmd" },
+  { label: "Comparador: Doação × Inventário", icon: ArrowLeftRight, href: "/comparador" },
   { label: "Gerador de Petição (IA)", icon: FileText, href: "/peticao" },
 ];
 
@@ -14,6 +15,7 @@ const pageTitles: Record<string, string> = {
   "/itcmd": "Calculadora de ITCMD",
   "/triagem": "Triagem de Inventário",
   "/peticao": "Gerador de Petição",
+  "/comparador": "Comparador: Doação × Inventário",
 };
 
 export function AppHeader() {

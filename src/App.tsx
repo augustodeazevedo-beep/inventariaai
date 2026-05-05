@@ -8,6 +8,7 @@ import CalculadoraPartilha from "@/pages/CalculadoraPartilha";
 import CalculadoraItcmd from "@/pages/CalculadoraItcmd";
 import TriagemInventario from "@/pages/TriagemInventario";
 import GeradorPeticao from "@/pages/GeradorPeticao";
+import ComparadorDoacaoInventario from "@/pages/ComparadorDoacaoInventario";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
             <Route path="/itcmd" element={<CalculadoraItcmd />} />
             <Route path="/triagem" element={<TriagemInventario />} />
             <Route path="/peticao" element={<GeradorPeticao />} />
+            <Route path="/comparador" element={<ComparadorDoacaoInventario />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

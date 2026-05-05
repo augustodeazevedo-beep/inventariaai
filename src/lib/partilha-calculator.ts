@@ -141,3 +141,29 @@ export function getParentescoLabel(p: string): string {
 export function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+// LC 227/2026 — progressive brackets, each bracket taxes only the tranche within it
+export function calcularItcmdProgressivo(base: number): number {
+  if (base <= 0) return 0;
+  const brackets = [
+    { ate: 10_000, rate: 0.02 },
+    { ate: 20_000, rate: 0.04 },
+    { ate: 40_000, rate: 0.06 },
+    { ate: Infinity, rate: 0.08 },
+  ];
+  let total = 0;
+  let prev = 0;
+  for (const b of brackets) {
+    if (base <= prev) break;
+    const cap = b.ate === Infinity ? base : b.ate;
+    total += (Math.min(base, cap) - prev) * b.rate;
+    prev = cap;
+  }
+  return total;
+}
+
+// Marginal ITCMD when prior donations of `acumulado` already exist (12-month aggregation)
+export function calcularItcmdMarginal(valor: number, acumulado: number): number {
+  return calcularItcmdProgressivo(Math.max(0, acumulado) + Math.max(0, valor))
+       - calcularItcmdProgressivo(Math.max(0, acumulado));
+}
