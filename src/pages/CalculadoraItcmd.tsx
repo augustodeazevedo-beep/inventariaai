@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ItcmdState, Beneficiario, BemItcmd, FatoGerador, TipoBem, ResidenciaType } from "@/types/inventario";
-import { formatCurrency } from "@/lib/partilha-calculator";
+import { formatCurrency, calcularItcmdMarginal } from "@/lib/partilha-calculator";
 import { Calculator, Trash2, Scale, AlertTriangle } from "lucide-react";
 
 const UF_LIST = [
@@ -21,29 +21,8 @@ const tipoOptions: { value: TipoBem; label: string }[] = [
   { value: "outros", label: "Outros" },
 ];
 
-// LC 227/2026 + EC 132/23 — faixas mínimas nacionais, cálculo marginal por tranche
-function calcularProgressivo(base: number): number {
-  if (base <= 0) return 0;
-  const brackets = [
-    { ate: 1_000_000,  aliquota: 0.02 },  // Até R$ 1 milhão: 2%
-    { ate: 5_000_000,  aliquota: 0.04 },  // R$ 1M – R$ 5M: 4%
-    { ate: 15_000_000, aliquota: 0.06 },  // R$ 5M – R$ 15M: 6%
-    { ate: Infinity,   aliquota: 0.08 },  // Acima de R$ 15M: 8%
-  ];
-  let total = 0;
-  let anterior = 0;
-  for (const b of brackets) {
-    if (base <= anterior) break;
-    const tranche = Math.min(base, b.ate === Infinity ? base : b.ate) - anterior;
-    total += tranche * b.aliquota;
-    anterior = b.ate === Infinity ? base : b.ate;
-  }
-  return total;
-}
-
-// Marginal ITCMD considering donations already made in the last 12 months
 function calcularComAcumulado(valor: number, acumulado: number): { itcmd: number; aliquotaEfetiva: number } {
-  const itcmd = calcularProgressivo(acumulado + valor) - calcularProgressivo(acumulado);
+  const itcmd = calcularItcmdMarginal(valor, acumulado);
   return { itcmd, aliquotaEfetiva: valor > 0 ? (itcmd / valor) * 100 : 0 };
 }
 

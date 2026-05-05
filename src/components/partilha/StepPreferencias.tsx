@@ -1,4 +1,3 @@
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -45,17 +44,12 @@ export function StepPreferencias({ data, onChange }: Props) {
           </div>
 
           {data.simularItcmd && (
-            <div className="space-y-1.5 animate-fade-in">
-              <Label>Alíquota do ITCMD (%)</Label>
-              <Input
-                type="number"
-                value={data.aliquotaItcmd}
-                onChange={(e) => update({ aliquotaItcmd: parseFloat(e.target.value) || 0 })}
-                min={0}
-                max={8}
-                step={0.5}
-              />
-              <p className="text-xs text-muted-foreground">A alíquota varia por estado (máx 8%).</p>
+            <div className="space-y-1.5 animate-fade-in rounded-lg border border-info/30 bg-info/5 px-3 py-2">
+              <p className="text-xs font-semibold text-info">LC 227/2026 — Cálculo Progressivo</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Até R$ 1.000.000 → 2% | R$ 1M–R$ 5M → 4% | R$ 5M–R$ 15M → 6% | acima de R$ 15M → 8%
+                <br />Cada faixa incide apenas sobre o valor dentro dela (cálculo marginal).
+              </p>
             </div>
           )}
         </div>
