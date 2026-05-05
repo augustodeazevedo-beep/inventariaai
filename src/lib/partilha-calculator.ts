@@ -145,14 +145,14 @@ export function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// LC 227/2026 — progressive brackets, each bracket taxes only the tranche within it
+// LC 227/2026 + EC 132/23 — faixas mínimas nacionais, cálculo marginal por tranche
 export function calcularItcmdProgressivo(base: number): number {
   if (base <= 0) return 0;
   const brackets = [
-    { ate: 10_000, rate: 0.02 },
-    { ate: 20_000, rate: 0.04 },
-    { ate: 40_000, rate: 0.06 },
-    { ate: Infinity, rate: 0.08 },
+    { ate: 1_000_000,  rate: 0.02 },  // Até R$ 1 milhão: 2%
+    { ate: 5_000_000,  rate: 0.04 },  // R$ 1M – R$ 5M: 4%
+    { ate: 15_000_000, rate: 0.06 },  // R$ 5M – R$ 15M: 6%
+    { ate: Infinity,   rate: 0.08 },  // Acima de R$ 15M: 8%
   ];
   let total = 0;
   let prev = 0;

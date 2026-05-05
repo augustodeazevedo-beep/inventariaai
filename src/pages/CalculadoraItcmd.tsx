@@ -21,14 +21,14 @@ const tipoOptions: { value: TipoBem; label: string }[] = [
   { value: "outros", label: "Outros" },
 ];
 
-// LC 227/2026 — each bracket taxes only the portion within it
+// LC 227/2026 + EC 132/23 — faixas mínimas nacionais, cálculo marginal por tranche
 function calcularProgressivo(base: number): number {
   if (base <= 0) return 0;
   const brackets = [
-    { ate: 10_000, aliquota: 0.02 },
-    { ate: 20_000, aliquota: 0.04 },
-    { ate: 40_000, aliquota: 0.06 },
-    { ate: Infinity, aliquota: 0.08 },
+    { ate: 1_000_000,  aliquota: 0.02 },  // Até R$ 1 milhão: 2%
+    { ate: 5_000_000,  aliquota: 0.04 },  // R$ 1M – R$ 5M: 4%
+    { ate: 15_000_000, aliquota: 0.06 },  // R$ 5M – R$ 15M: 6%
+    { ate: Infinity,   aliquota: 0.08 },  // Acima de R$ 15M: 8%
   ];
   let total = 0;
   let anterior = 0;
@@ -460,8 +460,8 @@ export default function CalculadoraItcmd() {
 
           <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground space-y-1">
             <p className="font-semibold text-foreground">Fundamentação — LC 227/2026</p>
-            <p>Alíquotas progressivas: até R$10.000 → 2% | R$10.001–R$20.000 → 4% | R$20.001–R$40.000 → 6% | acima de R$40.000 → 8% (teto federal).</p>
-            <p>Cada faixa incide apenas sobre o valor dentro dela. Base de cálculo: valor de mercado (não valor venal). Doações do mesmo doador nos últimos 12 meses são agregadas para fins de progressividade (art. 7º, LC 227/2026).</p>
+            <p>Alíquotas progressivas: até R$ 1.000.000 → 2% | R$ 1.000.001–R$ 5.000.000 → 4% | R$ 5.000.001–R$ 15.000.000 → 6% | acima de R$ 15.000.000 → 8% (teto federal mínimo).</p>
+            <p>Cada faixa incide apenas sobre o valor dentro dela (cálculo marginal). Base de cálculo: valor de mercado (não valor venal). Doações do mesmo doador nos últimos 12 meses são agregadas para fins de progressividade (art. 7º, LC 227/2026).</p>
             <p className="italic">Simulação técnica. Não substitui assessoria jurídica especializada.</p>
           </div>
         </div>

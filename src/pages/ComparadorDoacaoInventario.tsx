@@ -307,9 +307,9 @@ export default function ComparadorDoacaoInventario() {
               <Info className="w-3.5 h-3.5" /> Metodologia do Cálculo
             </p>
             <p>
-              <strong>ITCMD:</strong> alíquotas progressivas LC 227/2026 — até R$10.000: 2% | R$10.001–R$20.000: 4% |
-              R$20.001–R$40.000: 6% | acima de R$40.000: 8% (teto federal). Calculado individualmente por herdeiro sobre
-              o quinhão proporcional.
+              <strong>ITCMD:</strong> alíquotas progressivas LC 227/2026 — até R$ 1.000.000: 2% | R$ 1M–R$ 5M: 4% |
+              R$ 5M–R$ 15M: 6% | acima de R$ 15.000.000: 8% (teto federal mínimo). Calculado individualmente por herdeiro sobre
+              o quinhão proporcional (cálculo marginal — cada faixa incide apenas sobre o valor dentro dela).
             </p>
             <p>
               <strong>Inventário:</strong> custas judiciais estimadas entre 2% e 4% do monte (midpoint 3% no total);
