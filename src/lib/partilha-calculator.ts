@@ -25,6 +25,9 @@ export function calcularPartilha(state: PartilhaState): ResultadoPartilha {
   // Distribuir herança entre herdeiros
   const herdeirosAtivos = state.herdeiros.filter(h => h.concorre);
   const numHerdeiros = herdeirosAtivos.length;
+  if (!numHerdeiros || numHerdeiros <= 0) {
+    return { monteMor, dividas, meacao, heranca, quadroIndividual: [], estimativaItcmd: 0, baseCalculoItcmd: heranca };
+  }
   
   // Verificar se cônjuge concorre com descendentes
   const temDescendentes = herdeirosAtivos.some(h => 
@@ -92,8 +95,8 @@ export function calcularPartilha(state: PartilhaState): ResultadoPartilha {
       quinhao = parteLegitimaTotal / numHerdeiros;
     }
     
-    const itcmd = state.preferencias.simularItcmd 
-      ? quinhao * (state.preferencias.aliquotaItcmd / 100) 
+    const itcmd = state.preferencias.simularItcmd
+      ? calcularItcmdProgressivo(quinhao)
       : 0;
     
     return {
@@ -106,7 +109,7 @@ export function calcularPartilha(state: PartilhaState): ResultadoPartilha {
   });
   
   const estimativaItcmd = state.preferencias.simularItcmd
-    ? heranca * (state.preferencias.aliquotaItcmd / 100)
+    ? quadroIndividual.reduce((sum, q) => sum + q.itcmd, 0)
     : 0;
   
   return {

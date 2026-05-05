@@ -1,4 +1,4 @@
-import { Menu, Scale, Calculator, FileSearch, FileText, ArrowLeftRight } from "lucide-react";
+import { Menu, Scale, Calculator, FileSearch, FileText, ArrowLeftRight, Building2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 
@@ -8,6 +8,7 @@ const mobileMenuItems = [
   { label: "Calculadora de ITCMD", icon: Calculator, href: "/itcmd" },
   { label: "Comparador: Doação × Inventário", icon: ArrowLeftRight, href: "/comparador" },
   { label: "Gerador de Petição (IA)", icon: FileText, href: "/peticao" },
+  { label: "Planejamento Holding", icon: Building2, href: "/holding" },
 ];
 
 const pageTitles: Record<string, string> = {
@@ -16,6 +17,7 @@ const pageTitles: Record<string, string> = {
   "/triagem": "Triagem de Inventário",
   "/peticao": "Gerador de Petição",
   "/comparador": "Comparador: Doação × Inventário",
+  "/holding": "Planejamento Holding",
 };
 
 export function AppHeader() {

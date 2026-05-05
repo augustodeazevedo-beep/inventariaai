@@ -1,4 +1,4 @@
-import { Calculator, FileSearch, Scale, ChevronRight, FileText, ArrowLeftRight } from "lucide-react";
+import { Calculator, FileSearch, Scale, ChevronRight, FileText, ArrowLeftRight, Building2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const menuItems = [
@@ -7,6 +7,7 @@ const menuItems = [
   { label: "Calculadora de ITCMD", icon: Calculator, href: "/itcmd" },
   { label: "Comparador: Doação × Inventário", icon: ArrowLeftRight, href: "/comparador" },
   { label: "Gerador de Petição (IA)", icon: FileText, href: "/peticao" },
+  { label: "Planejamento Holding", icon: Building2, href: "/holding" },
 ];
 
 export function AppSidebar() {
