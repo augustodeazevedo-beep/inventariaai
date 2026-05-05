@@ -116,6 +116,7 @@ export interface ItcmdState {
   nomeDoador: string;
   residenciaDoador: ResidenciaType;
   ufDoador: string;
+  doacoesAcumuladas12m: number;
   beneficiarios: Beneficiario[];
   bens: BemItcmd[];
 }

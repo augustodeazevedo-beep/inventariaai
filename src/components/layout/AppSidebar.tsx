@@ -15,7 +15,8 @@ export function AppSidebar() {
     <aside className="hidden lg:flex flex-col w-72 bg-sidebar text-sidebar-foreground border-r border-sidebar-border min-h-screen">
       <div className="p-5 border-b border-sidebar-border">
         <h1 className="font-serif font-bold text-lg gradient-text">Inventaria.AI</h1>
-        <p className="text-[10px] text-sidebar-foreground/40 mt-0.5">Via, Rito e Competência</p>
+        <p className="text-[10px] text-sidebar-foreground/60 mt-0.5 font-medium">Sistema de Gestão de Inventário com IA</p>
+        <p className="text-[9px] text-sidebar-foreground/40 mt-0.5">Da triagem à sentença em uma única plataforma</p>
       </div>
       <nav className="flex-1 p-3 space-y-1">
         {menuItems.map((item) => {

@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ItcmdState, Beneficiario, BemItcmd, FatoGerador, TipoBem, ResidenciaType } from "@/types/inventario";
 import { formatCurrency } from "@/lib/partilha-calculator";
-import { Calculator, Plus, Trash2, Scale } from "lucide-react";
+import { Calculator, Trash2, Scale, AlertTriangle } from "lucide-react";
 
 const UF_LIST = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -21,11 +21,38 @@ const tipoOptions: { value: TipoBem; label: string }[] = [
   { value: "outros", label: "Outros" },
 ];
 
+// LC 227/2026 — each bracket taxes only the portion within it
+function calcularProgressivo(base: number): number {
+  if (base <= 0) return 0;
+  const brackets = [
+    { ate: 10_000, aliquota: 0.02 },
+    { ate: 20_000, aliquota: 0.04 },
+    { ate: 40_000, aliquota: 0.06 },
+    { ate: Infinity, aliquota: 0.08 },
+  ];
+  let total = 0;
+  let anterior = 0;
+  for (const b of brackets) {
+    if (base <= anterior) break;
+    const tranche = Math.min(base, b.ate === Infinity ? base : b.ate) - anterior;
+    total += tranche * b.aliquota;
+    anterior = b.ate === Infinity ? base : b.ate;
+  }
+  return total;
+}
+
+// Marginal ITCMD considering donations already made in the last 12 months
+function calcularComAcumulado(valor: number, acumulado: number): { itcmd: number; aliquotaEfetiva: number } {
+  const itcmd = calcularProgressivo(acumulado + valor) - calcularProgressivo(acumulado);
+  return { itcmd, aliquotaEfetiva: valor > 0 ? (itcmd / valor) * 100 : 0 };
+}
+
 const initialState: ItcmdState = {
   fatoGerador: "doacao",
   nomeDoador: "",
   residenciaDoador: "brasil",
   ufDoador: "SP",
+  doacoesAcumuladas12m: 0,
   beneficiarios: [
     { id: crypto.randomUUID(), nome: "Beneficiário 1", percentual: 100, residencia: "brasil", uf: "SP" },
   ],
@@ -34,16 +61,21 @@ const initialState: ItcmdState = {
   ],
 };
 
+interface ResultadoBenef {
+  nome: string;
+  percentual: number;
+  valor: number;
+  itcmd: number;
+  aliquotaEfetiva: number;
+  ufCompetente: string;
+}
+
 interface ResultadoItcmd {
   totalMonte: number;
-  beneficiarios: {
-    nome: string;
-    percentual: number;
-    valor: number;
-    itcmd: number;
-    ufCompetente: string;
-  }[];
+  acumulado: number;
+  beneficiarios: ResultadoBenef[];
   totalItcmd: number;
+  temRS: boolean;
 }
 
 export default function CalculadoraItcmd() {
@@ -88,48 +120,43 @@ export default function CalculadoraItcmd() {
 
   const totalPercentual = state.beneficiarios.reduce((s, b) => s + b.percentual, 0);
 
+  // Reactive RS detection — triggers alert before calculation
+  const temRsNoForm =
+    state.ufDoador === "RS" ||
+    state.beneficiarios.some((b) => b.uf === "RS") ||
+    state.bens.some((b) => b.uf === "RS");
+
   const calcular = () => {
     const totalMonte = state.bens.reduce((s, b) => s + b.valor * (b.fracao / 100), 0);
-    
-    // Alíquota simplificada por UF (em produção, usar tabela completa com faixas progressivas)
-    const getAliquota = (uf: string): number => {
-      const aliquotas: Record<string, number> = {
-        SP: 4, RJ: 4, MG: 5, BA: 4, PR: 4, RS: 4, SC: 4,
-        PE: 2, CE: 2, GO: 4, DF: 4, ES: 4, MT: 4, MS: 4,
-        PA: 4, AM: 2, MA: 2, PB: 4, PI: 4, RN: 4, SE: 4,
-        AL: 4, AC: 4, AP: 4, RO: 4, RR: 4, TO: 4,
-      };
-      return aliquotas[uf] || 4;
-    };
+    const acumulado = state.doacoesAcumuladas12m ?? 0;
 
-    // Determinar UF competente para cada beneficiário
-    const beneficiariosResultado = state.beneficiarios.map((ben) => {
+    const ufImovPrincipal = state.bens.find((b) => b.natureza === "imovel")?.uf;
+
+    const beneficiariosResultado: ResultadoBenef[] = state.beneficiarios.map((ben) => {
       const valor = totalMonte * (ben.percentual / 100);
-      
-      // Competência: para imóveis, UF do imóvel; para outros, UF do doador/inventariante
-      // Simplificação: usar UF do doador por padrão
-      const ufCompetente = state.bens.some(b => b.natureza === "imovel") 
-        ? state.bens.find(b => b.natureza === "imovel")?.uf || state.ufDoador
-        : state.ufDoador;
-      
-      const aliquota = getAliquota(ufCompetente);
-      const itcmd = valor * (aliquota / 100);
-      
-      return {
-        nome: ben.nome,
-        percentual: ben.percentual,
-        valor,
-        itcmd,
-        ufCompetente,
-      };
+      const ufCompetente = ufImovPrincipal ?? state.ufDoador;
+      const { itcmd, aliquotaEfetiva } = calcularComAcumulado(valor, acumulado);
+      return { nome: ben.nome, percentual: ben.percentual, valor, itcmd, aliquotaEfetiva, ufCompetente };
     });
 
     setResultado({
       totalMonte,
+      acumulado,
       beneficiarios: beneficiariosResultado,
       totalItcmd: beneficiariosResultado.reduce((s, b) => s + b.itcmd, 0),
+      temRS: beneficiariosResultado.some((b) => b.ufCompetente === "RS"),
     });
   };
+
+  const alertRS = (
+    <div className="flex gap-3 rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm">
+      <AlertTriangle className="w-5 h-5 shrink-0 text-warning mt-0.5" />
+      <p>
+        <strong>Rio Grande do Sul:</strong> Lei estadual 8.821/1989 ainda não adaptada à LC 227/2026.
+        Exibindo alíquotas federais mínimas. Acompanhe a legislação estadual.
+      </p>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -142,10 +169,13 @@ export default function CalculadoraItcmd() {
           Simulador Jurídico <span className="text-info">ITCMD 2026</span>
         </h1>
         <p className="text-sm text-header-foreground/70 mt-2">
-          Análise tributária sobre o <strong>Monte Partilhável</strong>. Cálculo individual por beneficiário
-          conforme a LC 227/26 e EC 132/23.
+          Análise tributária sobre o <strong>Monte Partilhável</strong> pelo <strong>valor de mercado</strong>.
+          Cálculo individual por beneficiário conforme a <strong>LC 227/2026</strong> e EC 132/23.
         </p>
       </div>
+
+      {/* RS alert — reactive to form input */}
+      {temRsNoForm && alertRS}
 
       {/* Fato Gerador */}
       <div className="section-card">
@@ -196,6 +226,25 @@ export default function CalculadoraItcmd() {
             </Select>
           </div>
         </div>
+
+        {/* Accumulated donations — only relevant for doação */}
+        {state.fatoGerador === "doacao" && (
+          <div className="mt-4 space-y-1.5 max-w-sm">
+            <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+              Doações anteriores (últimos 12 meses) — mesmo doador (R$)
+            </Label>
+            <Input
+              type="number"
+              min={0}
+              value={state.doacoesAcumuladas12m || ""}
+              onChange={(e) => update({ doacoesAcumuladas12m: parseFloat(e.target.value) || 0 })}
+              placeholder="0"
+            />
+            <p className="text-xs text-muted-foreground">
+              Base acumulada para a faixa progressiva — LC 227/2026 agrega doações dos últimos 12 meses.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Beneficiários */}
@@ -333,7 +382,9 @@ export default function CalculadoraItcmd() {
               </div>
               <div className="flex items-end gap-3 mt-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Valor Total 100% (R$)</Label>
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                    Valor de Mercado — 100% (R$)
+                  </Label>
                   <Input
                     type="number"
                     value={bem.valor || ""}
@@ -365,10 +416,12 @@ export default function CalculadoraItcmd() {
       {resultado && (
         <div className="section-card animate-fade-in space-y-4">
           <h2 className="font-serif text-xl font-bold">Resultado do Cálculo ITCMD</h2>
-          
+
+          {resultado.temRS && alertRS}
+
           <div className="grid grid-cols-2 gap-3">
             <div className="result-card result-card-dark p-3">
-              <p className="text-xs uppercase opacity-70">Monte Partilhável</p>
+              <p className="text-xs uppercase opacity-70">Monte Partilhável (Mercado)</p>
               <p className="text-xl font-bold mt-1">R$ {formatCurrency(resultado.totalMonte)}</p>
             </div>
             <div className="result-card result-card-danger p-3">
@@ -376,6 +429,13 @@ export default function CalculadoraItcmd() {
               <p className="text-xl font-bold text-destructive mt-1">R$ {formatCurrency(resultado.totalItcmd)}</p>
             </div>
           </div>
+
+          {resultado.acumulado > 0 && (
+            <div className="rounded-lg border border-info/30 bg-info/5 px-4 py-3 text-sm">
+              <span className="font-semibold">Base acumulada (12 meses):</span>{" "}
+              R$ {formatCurrency(resultado.acumulado)} — faixas progressivas aplicadas a partir desse valor.
+            </div>
+          )}
 
           <div className="space-y-2">
             <h3 className="font-bold text-sm uppercase">Detalhamento por Beneficiário</h3>
@@ -387,12 +447,22 @@ export default function CalculadoraItcmd() {
                     <p className="text-xs text-muted-foreground">{b.percentual}% — UF Competente: {b.ufCompetente}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm">Valor: R$ {formatCurrency(b.valor)}</p>
+                    <p className="text-sm">Valor (mercado): R$ {formatCurrency(b.valor)}</p>
                     <p className="text-sm font-bold text-destructive">ITCMD: R$ {formatCurrency(b.itcmd)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Alíquota efetiva: {b.aliquotaEfetiva.toFixed(2)}%
+                    </p>
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground space-y-1">
+            <p className="font-semibold text-foreground">Fundamentação — LC 227/2026</p>
+            <p>Alíquotas progressivas: até R$10.000 → 2% | R$10.001–R$20.000 → 4% | R$20.001–R$40.000 → 6% | acima de R$40.000 → 8% (teto federal).</p>
+            <p>Cada faixa incide apenas sobre o valor dentro dela. Base de cálculo: valor de mercado (não valor venal). Doações do mesmo doador nos últimos 12 meses são agregadas para fins de progressividade (art. 7º, LC 227/2026).</p>
+            <p className="italic">Simulação técnica. Não substitui assessoria jurídica especializada.</p>
           </div>
         </div>
       )}
