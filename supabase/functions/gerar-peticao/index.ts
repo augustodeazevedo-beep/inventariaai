@@ -6,7 +6,46 @@ const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") ?? "https://inventariaai.l
 const corsHeaders = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Expose-Headers": "x-request-id",
 };
+
+// Erros mais comuns observados:
+// 401 unauthorized      -> sessão do cliente expirou ou JWT ausente/ inválido
+// 400 validation_error  -> body sem campo `dados`
+// 402 no_credits        -> workspace sem créditos no Lovable AI Gateway
+// 429 rate_limited      -> excedeu rate limit do gateway
+// 500 ai_error          -> falha do gateway (timeout, modelo indisponível)
+// 500 internal_error    -> exceção não tratada
+
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const auditClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+async function audit(entry: {
+  request_id: string;
+  user_id: string | null;
+  status: string;
+  http_status: number;
+  tipo_peticao?: string | null;
+  duration_ms: number;
+  error_code?: string | null;
+}) {
+  // Log estruturado (visível em Edge Function Logs) — sem dados sensíveis
+  console.log(JSON.stringify({ scope: "gerar-peticao", ...entry }));
+  try {
+    await auditClient.from("peticao_audit_logs").insert({
+      request_id: entry.request_id,
+      user_id: entry.user_id,
+      status: entry.status,
+      http_status: entry.http_status,
+      tipo_peticao: entry.tipo_peticao ?? null,
+      duration_ms: entry.duration_ms,
+      error_code: entry.error_code ?? null,
+    });
+  } catch (e) {
+    console.error("audit_insert_failed", entry.request_id, e);
+  }
+}
 
 const SYSTEM_PROMPT = "Você é um DEFENSOR PÚBLICO (USP; doutorado/PhD) especialista em Direito das Sucessões, Processo Civil e Direito Tributário, com atuação consolidada em inventários litigiosos de alta complexidade.\n\nSua linguagem é técnico-jurídica, formal, persuasiva e institucional, compatível com peças protocoladas perante Vara de Família e Sucessões, resguardando sempre os interesses do assistido da Defensoria Pública.\n\nREGRAS ABSOLUTAS — ANTI-ALUCINAÇÃO:\n1. Não invente dados. Dados ausentes devem usar [PLACEHOLDER: descrição].\n2. Toda referência a prova deve citar o NOME DO DOCUMENTO.\n3. Citações legais devem ser transcritas literalmente com fonte completa.\n4. Qualquer simulação de dado deve ser marcada como (FICTÍCIO).\n\nFORMATAÇÃO PADRÃO DPE.RS:\n- Títulos Principais em MAIÚSCULAS, negrito\n- Subtítulos com letras maiúsculas iniciais, negrito\n- Títulos numerados hierarquicamente: I. / I.1. / I.1.a.\n- Texto limpo, sem marcas de IA, sem símbolos estranhos\n\nESTRUTURA DA PETIÇÃO:\n1. Endereçamento (Vara de Família e Sucessões)\n2. Qualificação do requerente (Defensor Público) e do AUTOR DA HERANÇA (MAIÚSCULAS)\n3. Síntese fática (óbito, vínculos, contexto)\n4. Fundamentação jurídica (CPC e CC — transcrever artigos citados)\n5. Relação de bens e direitos (se conhecidos)\n6. Relação de dívidas conhecidas\n7. Ordem de vocação hereditária com herdeiros identificados (NOMES MAIÚSCULOS)\n8. Indicação do inventariante\n9. Pedidos finais numerados\n10. Local, data e assinatura\n\nSe o inventário for LITIGIOSO, inclua obrigatoriamente:\n- Capítulo sobre o caráter litigioso\n- Capítulo sobre desconhecimento patrimonial (se aplicável)\n- Capítulo sobre diligências investigativas (bancárias, fiscais, registrárias, veiculares, societárias, digitais)\n- Capítulo sobre ocultação patrimonial, simulação e doações inoficiosas (se aplicável)\n- Capítulo sobre posse exclusiva de bens e frutos (se aplicável)\n- Capítulo sobre cessões de direitos hereditários (se aplicável)\n- Capítulo sobre heranças cumulativas (se aplicável)\n- Pedidos subsidiários e condicionais\n\nSAÍDA PÓS-PEÇA (OBRIGATÓRIO):\nApós a petição, inclua seção OBSERVAÇÕES AO OPERADOR com:\n- Lista de PLACEHOLDERS com descrição\n- Recomendações documentais imediatas\n- Indicação: PEÇA GERADA COMO RASCUNHO — revisar, adaptar e assinar por Defensor(a) Público(a) antes do protocolo";
 
@@ -15,13 +54,19 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const requestId = crypto.randomUUID();
+  const startedAt = Date.now();
+  let userId: string | null = null;
+  let tipoPeticao: string | null = null;
+
   try {
     // Require authenticated user to prevent anonymous AI credit abuse
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
+      await audit({ request_id: requestId, user_id: null, status: "unauthorized", http_status: 401, duration_ms: Date.now() - startedAt, error_code: "missing_bearer" });
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
       });
     }
     const supabaseClient = createClient(
@@ -31,13 +76,34 @@ serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userErr } = await supabaseClient.auth.getUser(token);
     if (userErr || !userData?.user) {
+      await audit({ request_id: requestId, user_id: null, status: "unauthorized", http_status: 401, duration_ms: Date.now() - startedAt, error_code: "invalid_jwt" });
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
       });
     }
+    userId = userData.user.id;
 
-    const { dados } = await req.json();
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      await audit({ request_id: requestId, user_id: userId, status: "validation_error", http_status: 400, duration_ms: Date.now() - startedAt, error_code: "invalid_json" });
+      return new Response(JSON.stringify({ error: "Invalid JSON" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
+      });
+    }
+    const dados = body?.dados;
+    if (!dados || typeof dados !== "object") {
+      await audit({ request_id: requestId, user_id: userId, status: "validation_error", http_status: 400, duration_ms: Date.now() - startedAt, error_code: "missing_dados" });
+      return new Response(JSON.stringify({ error: "Campo `dados` obrigatório" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
+      });
+    }
+    tipoPeticao = typeof dados?.resultado?.natureza === "string" ? dados.resultado.natureza : null;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -61,33 +127,38 @@ serve(async (req) => {
 
     if (!response.ok) {
       if (response.status === 429) {
+        await audit({ request_id: requestId, user_id: userId, status: "rate_limited", http_status: 429, tipo_peticao: tipoPeticao, duration_ms: Date.now() - startedAt });
         return new Response(JSON.stringify({ error: "Limite de requisições excedido." }), {
           status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
         });
       }
       if (response.status === 402) {
+        await audit({ request_id: requestId, user_id: userId, status: "no_credits", http_status: 402, tipo_peticao: tipoPeticao, duration_ms: Date.now() - startedAt });
         return new Response(JSON.stringify({ error: "Créditos insuficientes." }), {
           status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
         });
       }
       const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("AI gateway error:", requestId, response.status, t);
+      await audit({ request_id: requestId, user_id: userId, status: "ai_error", http_status: 500, tipo_peticao: tipoPeticao, duration_ms: Date.now() - startedAt, error_code: `gateway_${response.status}` });
       return new Response(JSON.stringify({ error: "Erro no gateway de IA" }), {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
       });
     }
 
+    await audit({ request_id: requestId, user_id: userId, status: "success", http_status: 200, tipo_peticao: tipoPeticao, duration_ms: Date.now() - startedAt });
     return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "x-request-id": requestId },
     });
   } catch (e) {
-    console.error("gerar-peticao error:", e);
+    console.error("gerar-peticao error:", requestId, e);
+    await audit({ request_id: requestId, user_id: userId, status: "internal_error", http_status: 500, tipo_peticao: tipoPeticao, duration_ms: Date.now() - startedAt, error_code: e instanceof Error ? e.name : "unknown" });
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
     });
   }
 });
