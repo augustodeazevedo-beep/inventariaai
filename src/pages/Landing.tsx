@@ -10,8 +10,13 @@ import {
   ShieldCheck,
   Zap,
   Brain,
+  Mail,
+  Globe,
+  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logoMark from "@/assets/logo-inventaria-mark.png";
+import advocacyLogo from "@/assets/advocacy-ai-logo.png";
 
 const modulos = [
   {
@@ -64,13 +69,13 @@ export default function Landing() {
         <div className="relative max-w-5xl mx-auto text-center space-y-8">
           <span className="tag-chip">Legal AI Lab · Sucessões · Holding · AI-Native</span>
 
-          <div className="mx-auto w-40 h-40 lg:w-48 lg:h-48 rounded-2xl bg-white p-3 shadow-2xl glow-border flex items-center justify-center">
+          <div className="mx-auto w-40 h-40 lg:w-48 lg:h-48 rounded-2xl bg-gradient-to-br from-background to-secondary/40 p-4 shadow-2xl glow-border flex items-center justify-center border border-primary/20">
             <img
-              src="/images/logo-inventaria-icon.png"
-              alt="Inventaria.AI"
-              width={160}
-              height={160}
-              className="w-full h-full object-contain"
+              src={logoMark}
+              alt="Inventaria.AI — Plataforma de Sucessões com IA"
+              width={192}
+              height={192}
+              className="w-full h-full object-contain drop-shadow-[0_0_18px_rgba(0,212,255,0.45)]"
             />
           </div>
 
@@ -218,19 +223,97 @@ export default function Landing() {
             Começar agora <ArrowRight className="w-4 h-4" />
           </Link>
         </Button>
-        <div className="pt-6 border-t border-border/40 flex flex-col items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Uma criação</span>
-          <a
-            href="https://advocacyia.lovable.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-serif font-bold text-lg hover:opacity-80 transition-opacity"
-          >
-            <span className="text-foreground">Advocacy</span>
-            <span className="text-primary">.IA</span>
-          </a>
-        </div>
       </section>
+
+      {/* FOOTER — by Advocacy.AI */}
+      <footer className="rounded-2xl border border-border bg-card/40 backdrop-blur-sm px-6 py-10 lg:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+          {/* Brand */}
+          <div className="flex flex-col items-start gap-4">
+            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Um produto</span>
+            <a
+              href="https://advocacyia.lovable.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 group"
+            >
+              <div className="w-14 h-14 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-lg">
+                <img
+                  src={advocacyLogo}
+                  alt="Advocacy.AI"
+                  width={56}
+                  height={56}
+                  loading="lazy"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="leading-tight">
+                <div className="font-serif font-bold text-xl">
+                  <span className="text-foreground">Advocacy</span>
+                  <span className="text-primary">.AI</span>
+                </div>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Legal Intelligence Lab
+                </span>
+              </div>
+            </a>
+            <p className="text-xs text-muted-foreground leading-relaxed max-w-xs">
+              Inventaria.AI é a vertente de sucessões e planejamento patrimonial da Advocacy.AI —
+              construindo o futuro da prática jurídica com IA.
+            </p>
+          </div>
+
+          {/* Contato */}
+          <div className="space-y-3">
+            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Contato</span>
+            <ul className="space-y-2.5 text-sm">
+              <li>
+                <a
+                  href="mailto:contato@advocacy.ai"
+                  className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors"
+                >
+                  <Mail className="w-4 h-4 text-primary" />
+                  contato@advocacy.ai
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://advocacyia.lovable.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors"
+                >
+                  <Globe className="w-4 h-4 text-primary" />
+                  advocacyia.lovable.app
+                </a>
+              </li>
+              <li className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="w-4 h-4 text-primary" />
+                Porto Alegre · RS · Brasil
+              </li>
+            </ul>
+          </div>
+
+          {/* Plataforma */}
+          <div className="space-y-3">
+            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">Plataforma</span>
+            <ul className="space-y-2 text-sm">
+              <li><Link to="/triagem" className="text-foreground/80 hover:text-primary transition-colors">Triagem</Link></li>
+              <li><Link to="/partilha" className="text-foreground/80 hover:text-primary transition-colors">Calculadora de Partilha</Link></li>
+              <li><Link to="/itcmd" className="text-foreground/80 hover:text-primary transition-colors">Calculadora de ITCMD</Link></li>
+              <li><Link to="/peticao" className="text-foreground/80 hover:text-primary transition-colors">Gerador de Petição (IA)</Link></li>
+              <li><Link to="/holding" className="text-foreground/80 hover:text-primary transition-colors">Planejamento Holding</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-8 pt-6 border-t border-border/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-muted-foreground">
+          <span>© {new Date().getFullYear()} Advocacy.AI · Todos os direitos reservados.</span>
+          <span className="uppercase tracking-[0.18em]">
+            Inventaria.AI <span className="text-foreground/50">·</span> by Advocacy.AI
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
