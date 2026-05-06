@@ -42,6 +42,14 @@
     --sidebar-accent-foreground: 210 28% 93%;
     --sidebar-border: 212 15% 22%;
     --sidebar-ring: 73 100% 51%;
+    --header-background: 219 21% 11%;
+    --header-foreground: 210 28% 93%;
+    --success: 73 100% 51%;
+    --success-foreground: 217 17% 9%;
+    --info: 189 82% 51%;
+    --info-foreground: 217 17% 9%;
+    --warning: 40 100% 60%;
+    --warning-foreground: 217 17% 9%;
   }
 }
 
@@ -136,4 +144,35 @@
   }
   .donut-ring::after { content: ''; width: 44px; height: 44px; border-radius: 50%; background: hsl(219 21% 13%); }
   .rule-neon { height: 1px; background: linear-gradient(90deg, transparent, hsl(73 100% 51% / 0.4), transparent); border: none; margin: 1.5rem 0; }
+
+  .section-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   }
+
+  .tag-chip {
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.25);
+  }
+
+  .bg-page-pattern {
+    background-color: hsl(var(--background));
+    background-image: radial-gradient(circle, hsl(var(--border) / 0.4) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .bg-page-overlay {
+    background: linear-gradient(180deg, transparent 0%, hsl(var(--background) / 0.6) 100%);
+  }
+}

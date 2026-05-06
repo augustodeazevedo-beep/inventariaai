@@ -1,109 +1,48 @@
+## Problema
 
-# Rebranding Inventaria.AI — alinhamento à identidade Advocacy.IA
+A landing page renderiza todo o conteúdo (verifiquei via browser: as 4 seções de módulos estão no DOM), mas **classes CSS essenciais não existem**, então os cards e chips ficam sem background/borda/padding, parecendo "tela preta".
 
-## Diagnóstico
+### Classes/variáveis ausentes detectadas
 
-A identidade atual do Inventaria.AI (navy escuro + ciano + violeta) **não corresponde** à identidade real da Advocacy.IA, que é:
-
-- **Fundo:** placa de circuito impresso em **cinza claro/grafite** com trilhas em **verde-lima neon** (#C5FF3D aprox.) e **ciano** (#22D3EE aprox.)
-- **Logotipo:** letra **"A"** estilizada com trilhas e nós de circuito em verde-lima + texto **"Advocacy"** em grafite e **"IA"** em ciano
-- **Tipografia:** sans-serif geométrica condensada, peso variável (títulos enormes contrastando com tags pequenas tipo "LEGAL AI LAB | AI-NATIVE")
-- **Tom:** "tech jurídico" — limpo, técnico, com cards translúcidos e tags em caixa alta
-- **Linguagem visual:** chips "MÓDULOS DE OPERAÇÃO", "OPERADOR", "AI-NATIVE", "IN-COMPANY", "HANDS-ON", "LIVE"
-
-## O que será feito
-
-### 1. Logotipo Inventaria.AI (gerado por IA)
-
-Criar um logotipo no **mesmo idioma visual** do logo da Advocacy.IA:
-
-- Letra **"I"** ou monograma **"iA"** estruturado como placa de circuito em verde-lima neon, com nós/pontos brilhantes
-- Símbolo discreto remetendo a sucessões/inventário — uma **balança miniatura** ou **árvore genealógica** integrada às trilhas do circuito (mantendo paralelo com a balança da Advocacy.IA)
-- Texto "Inventaria" em grafite + ".AI" em ciano (mesmo padrão da marca-mãe)
-- Versões: ícone quadrado (favicon/sidebar) + lockup horizontal completo (header/landing/footer)
-- Geração via Lovable AI (`google/gemini-3-pro-image-preview`) → salvos em `public/images/logo-inventaria-icon.png` e `public/images/logo-inventaria-full.png`
-- Atualizar `public/favicon.ico` / `<link rel="icon">` no `index.html`
-
-### 2. Sistema de design (paleta + tipografia)
-
-Atualizar `src/index.css` e `tailwind.config.ts`:
-
-| Token | Antes | Depois |
+| Classe / Variável | Usada em | Status |
 |---|---|---|
-| `--primary` (verde-lima neon) | ciano | **`75 95% 60%`** (#C5FF3D aprox.) |
-| `--accent` (ciano elétrico) | violeta | **`190 95% 55%`** (#22D3EE aprox.) |
-| `--background` | navy 8% | **cinza grafite tech `220 15% 12%`** |
-| `--card` | navy 12% | grafite translúcido com leve verde |
-| Glow tokens | `--cyan-glow`, `--violet-glow` | **`--lime-glow`, `--cyan-glow`** |
-| `gradient-text` | cyan→violet | **lime→cyan** |
+| `section-card` | `Landing.tsx` (cards de módulos e diferenciais) | **não definida** |
+| `tag-chip` | `Landing.tsx` (todos os chips), `AppHeader.tsx` | **não definida** |
+| `bg-page-pattern` | `AppLayout.tsx`, `Auth.tsx` | **não definida** |
+| `bg-page-overlay` | `AppLayout.tsx`, `Auth.tsx` | **não definida** |
+| `bg-header` / `text-header-foreground` | `AppHeader.tsx` | tailwind referencia `--header-*`, mas vars **não declaradas** em `:root` |
+| `--success` / `--info` / `--warning` | `tailwind.config.ts` | **não declaradas** em `:root` |
 
-Tipografia:
-- Títulos: **Space Grotesk** (mantém) — usado em peso 700 com tracking apertado para títulos enormes ao estilo Advocacy.IA
-- Body: **Inter** (mantém)
-- Adicionar utilitário `.tag-chip` (caixa alta, tracking largo, borda fina) para reproduzir as etiquetas "LEGAL AI LAB | AI-NATIVE"
+## Correções (apenas em `src/index.css`)
 
-### 3. Background global
-
-Substituir `public/images/capa-bg.jpeg` (foto genérica) por **textura de placa de circuito** semelhante à Advocacy.IA:
-
-- Gerar via IA (`google/gemini-3-pro-image-preview`): plano cinza grafite com trilhas de PCB verde-lima e ciano, foco suave, perspectiva diagonal
-- Salvar em `public/images/circuit-bg.jpg`
-- Ajustar `.bg-page-overlay` para overlay mais sutil (a textura deve aparecer mais)
-
-### 4. Landing page (`src/pages/Landing.tsx`) — reescrita
-
-Estrutura inspirada na Advocacy.IA:
-
-```text
-┌──────────────────────────────────────────┐
-│  [HERO]                                   │
-│   tag chip: "LEGAL AI LAB | INVENTÁRIO"   │
-│   H1 enorme em duas cores:                │
-│     "Inventário Inteligente"  (lima)      │
-│     "do diagnóstico à sentença" (branco)  │
-│   sub-headline + 2 CTAs                   │
-│   [logo central grande sobre o circuito]  │
-├──────────────────────────────────────────┤
-│  [OPERADOR / SOBRE]                       │
-│   chip "OPERADOR" + descrição da plataforma│
-├──────────────────────────────────────────┤
-│  [MÓDULOS DE OPERAÇÃO]                    │
-│   4 cards principais com chips            │
-│   ("AI-NATIVE", "AUTO-CALC", "FISCAL",   │
-│    "DRAFTING") — borda fina, hover glow   │
-├──────────────────────────────────────────┤
-│  [DIFERENCIAIS]                           │
-│   3 features (anti-alucinação, padrão DPE,│
-│   integração total)                       │
-├──────────────────────────────────────────┤
-│  [CTA FINAL]                              │
-│   "Comece agora" + assinatura Advocacy.IA │
-└──────────────────────────────────────────┘
+### 1. Adicionar variáveis ausentes em `:root` (na identidade Inventaria.AI)
+```css
+--header-background: 219 21% 11%;
+--header-foreground: 210 28% 93%;
+--success: 73 100% 51%;
+--success-foreground: 217 17% 9%;
+--info: 189 82% 51%;
+--info-foreground: 217 17% 9%;
+--warning: 40 100% 60%;
+--warning-foreground: 217 17% 9%;
 ```
 
-### 5. Componentes de layout
+### 2. Adicionar utilitários ausentes em `@layer utilities`
 
-- **`AppSidebar`**: substituir texto "Inventaria.AI" pelo `<img>` do logo gerado; adicionar mini-logo Advocacy.IA no rodapé da sidebar
-- **`AppHeader`**: usar versão ícone do logo ao lado do título
-- **`AppLayout` (footer)**: trocar texto "Advocacy.IA" por logo oficial em PNG (gerado/extraído com cores corretas)
+- **`.section-card`** — fundo `hsl(var(--card))`, borda `hsl(var(--border))`, `border-radius: var(--radius)`, padding 1.5rem, transição.
+- **`.tag-chip`** — pílula uppercase com letter-spacing 0.18em, fundo `primary/10`, borda `primary/25`, cor `primary`, padding 0.25rem 0.625rem, font-size 0.65rem.
+- **`.bg-page-pattern`** — fundo `hsl(var(--background))` + `radial-gradient` discreto (mesmo motivo que já está aplicado no `body`, agora reutilizável).
+- **`.bg-page-overlay`** — `background: linear-gradient(180deg, transparent, hsl(var(--background)/0.6))` para suavizar leitura.
 
-### 6. Itens fora de escopo (deixar para próxima iteração se desejar)
+### 3. Corrigir chave extra em `src/index.css`
 
-- Multilíngue PT/EN/ES (Advocacy.IA tem)
-- Página "Sobre o operador"
-- Botão WhatsApp flutuante
+A linha **139** tem um `}` solitário fechando algo que já está fechado (a regra `.rule-neon` na 138 já se fecha sozinha). Vou remover esse `}` órfão para evitar que regras adicionadas no fim do arquivo fiquem fora do `@layer utilities`.
 
-## Detalhes técnicos
+## Resultado esperado
 
-- **Geração de imagens**: edge function temporária ou script Node usando `LOVABLE_API_KEY` chamando `https://ai.gateway.lovable.dev/v1/chat/completions` com `google/gemini-3-pro-image-preview` (modalidade image+text) → decodificar base64 → salvar PNG em `public/images/`
-- **Sem mudanças de banco** — rebranding é puramente front-end
-- **Sem alteração de rotas** — `/` continua sendo a Landing
-- **QA visual**: após gerar logo e bg, inspecionar os PNGs antes de commitar; iterar prompt se o resultado não casar com a estética do Advocacy.IA
+- Os 4 cards de módulos voltam a ter fundo escuro com borda visível e hover neon.
+- Os chips ("Legal AI Lab · Inventário · AI-Native", "AI-NATIVE", etc.) viram pílulas verdes-limão.
+- Header da plataforma e fundo das páginas internas ficam com a textura grafite consistente.
+- Página `/auth` ganha o fundo padrão.
 
-## Arquivos afetados
-
-- **Criar**: `public/images/logo-inventaria-icon.png`, `public/images/logo-inventaria-full.png`, `public/images/circuit-bg.jpg`, `public/favicon.png`
-- **Editar**: `src/index.css`, `tailwind.config.ts`, `src/pages/Landing.tsx`, `src/components/layout/AppSidebar.tsx`, `src/components/layout/AppHeader.tsx`, `src/components/layout/AppLayout.tsx`, `index.html`
-- **Remover**: `public/images/capa-bg.jpeg` (substituído), `public/favicon.ico` (substituído por `.png`)
-
-Confirmando o plano, executo tudo na sequência: gero as imagens → aplico paleta → reescrevo a Landing → atualizo header/sidebar/footer → QA visual.
+Nenhuma alteração é necessária em componentes, rotas ou backend.
