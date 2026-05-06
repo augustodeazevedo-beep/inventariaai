@@ -87,12 +87,12 @@ export default function Landing() {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
-              <Link to="/triagem">
-                Iniciar Triagem <ArrowRight className="w-4 h-4" />
+              <Link to="/auth">
+                Entrar / Criar conta <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="border-accent/40 text-accent hover:bg-accent/10 hover:text-accent">
-              <Link to="/peticao">Gerar Petição com IA</Link>
+              <Link to="/triagem">Acessar Plataforma</Link>
             </Button>
           </div>
         </div>
