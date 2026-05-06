@@ -62,7 +62,7 @@ export default function Landing() {
       <section className="relative overflow-hidden rounded-2xl border border-border bg-card/30 backdrop-blur-sm px-6 py-16 lg:py-24 lg:px-12">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 pointer-events-none" />
         <div className="relative max-w-5xl mx-auto text-center space-y-8">
-          <span className="tag-chip">Legal AI Lab · Inventário · AI-Native</span>
+          <span className="tag-chip">Legal AI Lab · Sucessões · Holding · AI-Native</span>
 
           <div className="mx-auto w-40 h-40 lg:w-48 lg:h-48 rounded-2xl bg-white p-3 shadow-2xl glow-border flex items-center justify-center">
             <img
@@ -75,16 +75,16 @@ export default function Landing() {
           </div>
 
           <h1 className="font-serif font-bold leading-[1.05] tracking-tight text-4xl sm:text-5xl lg:text-7xl">
-            <span className="block gradient-text">Inventário Inteligente</span>
+            <span className="block gradient-text">Sucessão Inteligente</span>
             <span className="block text-foreground/90 text-3xl sm:text-4xl lg:text-5xl mt-2">
-              do diagnóstico à sentença
+              do planejamento patrimonial à sentença de partilha
             </span>
           </h1>
 
-          <p className="text-base lg:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Plataforma jurídica com IA que une estratégia de direito material e processual,
-            cálculos automáticos e geração de peças — em conformidade com os padrões da Defensoria Pública,
-            CNJ e OAB.
+          <p className="text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            Plataforma jurídica com IA que integra <span className="text-foreground font-medium">planejamento patrimonial e sucessório</span> —
+            holding familiar, doação em vida, inventário, partilha e ITCMD —
+            com cálculos automáticos, estratégia processual e geração de peças em conformidade com Defensoria Pública, CNJ e OAB.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
