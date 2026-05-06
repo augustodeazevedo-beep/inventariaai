@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Landing from "@/pages/Landing";
+import Auth from "@/pages/Auth";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import CalculadoraPartilha from "@/pages/CalculadoraPartilha";
 import CalculadoraItcmd from "@/pages/CalculadoraItcmd";
 import TriagemInventario from "@/pages/TriagemInventario";
@@ -22,14 +24,17 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/auth" element={<Auth />} />
           <Route element={<AppLayout />}>
-            <Route path="/" element={<Landing />} />
-            <Route path="/partilha" element={<CalculadoraPartilha />} />
-            <Route path="/itcmd" element={<CalculadoraItcmd />} />
-            <Route path="/triagem" element={<TriagemInventario />} />
-            <Route path="/peticao" element={<GeradorPeticao />} />
-            <Route path="/comparador" element={<ComparadorDoacaoInventario />} />
-            <Route path="/holding" element={<PlanejamentoHolding />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="/partilha" element={<CalculadoraPartilha />} />
+              <Route path="/itcmd" element={<CalculadoraItcmd />} />
+              <Route path="/triagem" element={<TriagemInventario />} />
+              <Route path="/peticao" element={<GeradorPeticao />} />
+              <Route path="/comparador" element={<ComparadorDoacaoInventario />} />
+              <Route path="/holding" element={<PlanejamentoHolding />} />
+            </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
