@@ -17,22 +17,11 @@ export function AppSidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-sidebar text-sidebar-foreground border-r border-sidebar-border min-h-screen">
       <Link to="/" className="block p-5 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
-        <div className="flex items-center gap-3">
-          <img
-            src="/images/logo-inventaria-icon.png"
-            alt="Inventaria.AI"
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-md object-cover"
-          />
-          <div className="min-w-0">
-            <h1 className="font-serif font-bold text-base leading-tight">
-              <span className="text-foreground">Inventaria</span>
-              <span className="text-accent">.AI</span>
-            </h1>
-            <p className="text-[9px] text-sidebar-foreground/60 mt-0.5 uppercase tracking-[0.15em]">Legal AI Lab</p>
-          </div>
-        </div>
+        <img
+          src="/images/logo-inventaria-full.png"
+          alt="Inventaria.AI by Advocacy.AI"
+          className="w-full h-auto max-h-32 object-contain"
+        />
       </Link>
       <nav className="flex-1 p-3 space-y-1">
         {menuItems.map((item) => {
