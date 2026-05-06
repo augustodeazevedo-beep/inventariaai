@@ -85,12 +85,14 @@ export default function GeradorPeticao() {
       });
 
       if (!resp.ok || !resp.body) {
+        const reqId = resp.headers.get("x-request-id");
+        const suffix = reqId ? ` (cód: ${reqId.slice(0, 8)})` : "";
         if (resp.status === 429) {
-          toast.error("Limite de requisições excedido. Tente novamente em alguns minutos.");
+          toast.error("Limite de requisições excedido. Tente novamente em alguns minutos." + suffix);
         } else if (resp.status === 402) {
-          toast.error("Créditos insuficientes. Adicione créditos ao seu workspace.");
+          toast.error("Créditos insuficientes. Adicione créditos ao seu workspace." + suffix);
         } else {
-          toast.error("Erro ao gerar a petição. Tente novamente.");
+          toast.error("Erro ao gerar a petição. Tente novamente." + suffix);
         }
         setIsLoading(false);
         return;
