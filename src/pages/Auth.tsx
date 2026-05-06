@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import logoMark from "@/assets/logo-inventaria-mark.png";
 import advocacyLogo from "@/assets/advocacy-ai-logo.png";
 
 export default function Auth() {
@@ -71,21 +70,8 @@ export default function Auth() {
       <div className="absolute inset-0 bg-page-overlay" />
       <div className="relative w-full max-w-md">
         <Link to="/" className="flex flex-col items-center gap-3 mb-6">
-          <div className="w-24 h-24 rounded-2xl bg-secondary/40 border border-primary/30 p-3 shadow-2xl flex items-center justify-center">
-            <img
-              src={logoMark}
-              alt="Inventaria.AI"
-              className="w-full h-full object-contain drop-shadow-[0_0_14px_rgba(0,212,255,0.5)]"
-            />
-          </div>
-          <div className="text-center leading-tight">
-            <div className="font-serif font-bold text-2xl">
-              <span className="text-foreground">Inventaria</span>
-              <span className="text-primary">.AI</span>
-            </div>
-            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-              Sucessão Inteligente · AI-Native
-            </span>
+          <div className="bg-white rounded-2xl p-4 shadow-2xl">
+            <img src="/images/logo-inventaria-full.png" alt="Inventaria.AI by Advocacy.AI" className="h-28 w-auto object-contain" />
           </div>
         </Link>
         <Card className="p-6 backdrop-blur-sm bg-card/80 border-border">
