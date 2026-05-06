@@ -1,9 +1,10 @@
-import { Calculator, FileSearch, Scale, ChevronRight, FileText, ArrowLeftRight, Building2 } from "lucide-react";
+import { Calculator, FileSearch, Scale, ChevronRight, FileText, ArrowLeftRight, Building2, Home } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 const menuItems = [
+  { label: "Início", icon: Home, href: "/" },
   { label: "Triagem de Inventário", icon: FileSearch, href: "/triagem" },
-  { label: "Calculadora de Partilha", icon: Scale, href: "/" },
+  { label: "Calculadora de Partilha", icon: Scale, href: "/partilha" },
   { label: "Calculadora de ITCMD", icon: Calculator, href: "/itcmd" },
   { label: "Comparador: Doação × Inventário", icon: ArrowLeftRight, href: "/comparador" },
   { label: "Gerador de Petição (IA)", icon: FileText, href: "/peticao" },
