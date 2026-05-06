@@ -16,12 +16,14 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-sidebar text-sidebar-foreground border-r border-sidebar-border min-h-screen">
-      <Link to="/" className="block p-5 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
-        <img
-          src="/images/logo-inventaria-full.png"
-          alt="Inventaria.AI by Advocacy.AI"
-          className="w-full h-auto max-h-32 object-contain"
-        />
+      <Link to="/" className="block p-4 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
+        <div className="bg-white rounded-xl p-3 flex items-center justify-center">
+          <img
+            src="/images/logo-inventaria-full.png"
+            alt="Inventaria.AI by Advocacy.AI"
+            className="w-full h-auto max-h-28 object-contain"
+          />
+        </div>
       </Link>
       <nav className="flex-1 p-3 space-y-1">
         {menuItems.map((item) => {

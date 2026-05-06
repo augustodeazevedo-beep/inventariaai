@@ -50,8 +50,8 @@ export function AppHeader() {
           <button className="lg:hidden" onClick={() => setMenuOpen(!menuOpen)}>
             <Menu className="w-5 h-5" />
           </button>
-          <Link to="/" className="lg:hidden">
-            <img src="/images/logo-inventaria-icon.png" alt="Inventaria.AI" width={32} height={32} className="w-8 h-8 rounded" />
+          <Link to="/" className="lg:hidden bg-white rounded-md p-1 flex items-center justify-center">
+            <img src="/images/logo-inventaria-icon.png" alt="Inventaria.AI" width={32} height={32} className="w-7 h-7 object-contain" />
           </Link>
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.18em]">Inventaria.AI</p>
