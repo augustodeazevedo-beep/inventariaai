@@ -64,13 +64,15 @@ export default function Landing() {
         <div className="relative max-w-5xl mx-auto text-center space-y-8">
           <span className="tag-chip">Legal AI Lab · Inventário · AI-Native</span>
 
-          <img
-            src="/images/logo-inventaria-icon.png"
-            alt="Inventaria.AI"
-            width={160}
-            height={160}
-            className="mx-auto w-32 h-32 lg:w-40 lg:h-40 rounded-2xl object-cover shadow-2xl glow-border"
-          />
+          <div className="mx-auto w-40 h-40 lg:w-48 lg:h-48 rounded-2xl bg-white p-3 shadow-2xl glow-border flex items-center justify-center">
+            <img
+              src="/images/logo-inventaria-icon.png"
+              alt="Inventaria.AI"
+              width={160}
+              height={160}
+              className="w-full h-full object-contain"
+            />
+          </div>
 
           <h1 className="font-serif font-bold leading-[1.05] tracking-tight text-4xl sm:text-5xl lg:text-7xl">
             <span className="block gradient-text">Inventário Inteligente</span>
