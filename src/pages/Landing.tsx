@@ -10,9 +10,8 @@ import {
   ShieldCheck,
   Zap,
   Brain,
-  Mail,
   Globe,
-  MapPin,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import advocacyLogo from "@/assets/advocacy-ai-logo.png";
@@ -268,15 +267,6 @@ export default function Landing() {
             <ul className="space-y-2.5 text-sm">
               <li>
                 <a
-                  href="mailto:contato@advocacy.ai"
-                  className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors"
-                >
-                  <Mail className="w-4 h-4 text-primary" />
-                  contato@advocacy.ai
-                </a>
-              </li>
-              <li>
-                <a
                   href="https://advocacyia.lovable.app/"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -286,9 +276,16 @@ export default function Landing() {
                   advocacyia.lovable.app
                 </a>
               </li>
-              <li className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="w-4 h-4 text-primary" />
-                Porto Alegre · RS · Brasil
+              <li>
+                <a
+                  href="https://wa.me/5553999938229"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-foreground/80 hover:text-primary transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4 text-primary" />
+                  WhatsApp (53) 99993-8229
+                </a>
               </li>
             </ul>
           </div>
