@@ -16,11 +16,24 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-sidebar text-sidebar-foreground border-r border-sidebar-border min-h-screen">
-      <div className="p-5 border-b border-sidebar-border">
-        <h1 className="font-serif font-bold text-lg gradient-text">Inventaria.AI</h1>
-        <p className="text-[10px] text-sidebar-foreground/60 mt-0.5 font-medium">Sistema de Gestão de Inventário com IA</p>
-        <p className="text-[9px] text-sidebar-foreground/40 mt-0.5">Da triagem à sentença em uma única plataforma</p>
-      </div>
+      <Link to="/" className="block p-5 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
+        <div className="flex items-center gap-3">
+          <img
+            src="/images/logo-inventaria-icon.png"
+            alt="Inventaria.AI"
+            width={40}
+            height={40}
+            className="w-10 h-10 rounded-md object-cover"
+          />
+          <div className="min-w-0">
+            <h1 className="font-serif font-bold text-base leading-tight">
+              <span className="text-foreground">Inventaria</span>
+              <span className="text-accent">.AI</span>
+            </h1>
+            <p className="text-[9px] text-sidebar-foreground/60 mt-0.5 uppercase tracking-[0.15em]">Legal AI Lab</p>
+          </div>
+        </div>
+      </Link>
       <nav className="flex-1 p-3 space-y-1">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.href;
@@ -47,9 +60,13 @@ export function AppSidebar() {
           href="https://advocacyia.lovable.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 opacity-60 hover:opacity-100 transition-opacity"
+          className="flex flex-col items-center justify-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
         >
-          <span className="gradient-text font-serif font-bold text-xs">Advocacy.IA</span>
+          <span className="text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/50">Uma criação</span>
+          <span className="font-serif font-bold text-sm">
+            <span className="text-foreground">Advocacy</span>
+            <span className="text-primary">.IA</span>
+          </span>
         </a>
       </div>
     </aside>
