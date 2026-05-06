@@ -97,8 +97,8 @@ export default {
           to: { opacity: "1", transform: "translateY(0)" },
         },
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 8px hsl(187 100% 50% / 0.2)" },
-          "50%": { boxShadow: "0 0 20px hsl(187 100% 50% / 0.4)" },
+          "0%, 100%": { boxShadow: "0 0 8px hsl(75 90% 60% / 0.25)" },
+          "50%": { boxShadow: "0 0 22px hsl(75 90% 60% / 0.45)" },
         },
       },
       animation: {
