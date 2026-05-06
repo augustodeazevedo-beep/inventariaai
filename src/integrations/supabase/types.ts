@@ -14,7 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      peticao_audit_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_code: string | null
+          http_status: number
+          id: string
+          request_id: string
+          status: string
+          tipo_peticao: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_code?: string | null
+          http_status: number
+          id?: string
+          request_id: string
+          status: string
+          tipo_peticao?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_code?: string | null
+          http_status?: number
+          id?: string
+          request_id?: string
+          status?: string
+          tipo_peticao?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
