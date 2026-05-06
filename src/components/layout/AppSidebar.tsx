@@ -1,5 +1,7 @@
 import { Calculator, FileSearch, Scale, ChevronRight, FileText, ArrowLeftRight, Building2, Home } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import logoMark from "@/assets/logo-inventaria-mark.png";
+import advocacyLogo from "@/assets/advocacy-ai-logo.png";
 
 const menuItems = [
   { label: "Início", icon: Home, href: "/" },
@@ -16,13 +18,24 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-sidebar text-sidebar-foreground border-r border-sidebar-border min-h-screen">
-      <Link to="/" className="block p-4 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
-        <div className="bg-white rounded-xl p-3 flex items-center justify-center">
-          <img
-            src="/images/logo-inventaria-full.png"
-            alt="Inventaria.AI by Advocacy.AI"
-            className="w-full h-auto max-h-28 object-contain"
-          />
+      <Link to="/" className="block p-5 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-xl bg-secondary/50 border border-primary/30 flex items-center justify-center p-1.5 shadow-lg shadow-primary/10">
+            <img
+              src={logoMark}
+              alt="Inventaria.AI"
+              className="w-full h-full object-contain drop-shadow-[0_0_8px_rgba(0,212,255,0.5)]"
+            />
+          </div>
+          <div className="leading-tight">
+            <div className="font-serif font-bold text-xl">
+              <span className="text-foreground">Inventaria</span>
+              <span className="text-primary">.AI</span>
+            </div>
+            <span className="text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/60">
+              Sucessões · AI-Native
+            </span>
+          </div>
         </div>
       </Link>
       <nav className="flex-1 p-3 space-y-1">
@@ -51,13 +64,18 @@ export function AppSidebar() {
           href="https://advocacyia.lovable.app/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col items-center justify-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
+          className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
         >
-          <span className="text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/50">Uma criação</span>
-          <span className="font-serif font-bold text-sm">
-            <span className="text-foreground">Advocacy</span>
-            <span className="text-primary">.IA</span>
-          </span>
+          <div className="w-9 h-9 rounded-md bg-white p-1 flex items-center justify-center shrink-0">
+            <img src={advocacyLogo} alt="Advocacy.AI" className="w-full h-full object-contain" />
+          </div>
+          <div className="leading-tight">
+            <span className="block text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/60">Um produto</span>
+            <span className="font-serif font-bold text-sm">
+              <span className="text-foreground">Advocacy</span>
+              <span className="text-primary">.AI</span>
+            </span>
+          </div>
         </a>
       </div>
     </aside>

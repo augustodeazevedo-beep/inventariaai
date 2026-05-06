@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import logoMark from "@/assets/logo-inventaria-mark.png";
 
 const mobileMenuItems = [
   { label: "Início", icon: Home, href: "/" },
@@ -50,8 +51,8 @@ export function AppHeader() {
           <button className="lg:hidden" onClick={() => setMenuOpen(!menuOpen)}>
             <Menu className="w-5 h-5" />
           </button>
-          <Link to="/" className="lg:hidden bg-white rounded-md p-1 flex items-center justify-center">
-            <img src="/images/logo-inventaria-icon.png" alt="Inventaria.AI" width={32} height={32} className="w-7 h-7 object-contain" />
+          <Link to="/" className="lg:hidden rounded-md p-1 flex items-center justify-center bg-secondary/40 border border-primary/20">
+            <img src={logoMark} alt="Inventaria.AI" width={32} height={32} className="w-7 h-7 object-contain" />
           </Link>
           <div>
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.18em]">Inventaria.AI</p>

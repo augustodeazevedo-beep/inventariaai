@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import logoMark from "@/assets/logo-inventaria-mark.png";
+import advocacyLogo from "@/assets/advocacy-ai-logo.png";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -69,8 +71,21 @@ export default function Auth() {
       <div className="absolute inset-0 bg-page-overlay" />
       <div className="relative w-full max-w-md">
         <Link to="/" className="flex flex-col items-center gap-3 mb-6">
-          <div className="bg-white rounded-2xl p-4 shadow-2xl">
-            <img src="/images/logo-inventaria-full.png" alt="Inventaria.AI by Advocacy.AI" className="h-28 w-auto object-contain" />
+          <div className="w-24 h-24 rounded-2xl bg-secondary/40 border border-primary/30 p-3 shadow-2xl flex items-center justify-center">
+            <img
+              src={logoMark}
+              alt="Inventaria.AI"
+              className="w-full h-full object-contain drop-shadow-[0_0_14px_rgba(0,212,255,0.5)]"
+            />
+          </div>
+          <div className="text-center leading-tight">
+            <div className="font-serif font-bold text-2xl">
+              <span className="text-foreground">Inventaria</span>
+              <span className="text-primary">.AI</span>
+            </div>
+            <span className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+              Sucessão Inteligente · AI-Native
+            </span>
           </div>
         </Link>
         <Card className="p-6 backdrop-blur-sm bg-card/80 border-border">
@@ -118,9 +133,19 @@ export default function Auth() {
             Continuar com Google
           </Button>
         </Card>
-        <p className="text-center text-xs text-muted-foreground mt-4">
-          Uma criação <span className="text-primary font-semibold">Advocacy.AI</span>
-        </p>
+        <a
+          href="https://advocacyia.lovable.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-5 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
+        >
+          <div className="w-7 h-7 rounded-md bg-white p-0.5 flex items-center justify-center">
+            <img src={advocacyLogo} alt="Advocacy.AI" className="w-full h-full object-contain" />
+          </div>
+          <span className="text-xs text-muted-foreground">
+            Um produto <span className="text-foreground font-semibold">Advocacy<span className="text-primary">.AI</span></span>
+          </span>
+        </a>
       </div>
     </div>
   );
