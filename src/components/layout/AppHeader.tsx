@@ -1,6 +1,8 @@
-import { Menu, Scale, Calculator, FileSearch, FileText, ArrowLeftRight, Building2, Home } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { Menu, Scale, Calculator, FileSearch, FileText, ArrowLeftRight, Building2, Home, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 const mobileMenuItems = [
   { label: "Início", icon: Home, href: "/" },
@@ -24,7 +26,20 @@ const pageTitles: Record<string, string> = {
 
 export function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setEmail(s?.user.email ?? null));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   const title = pageTitles[location.pathname] || "Inventaria.AI";
 
@@ -43,6 +58,14 @@ export function AppHeader() {
             <h1 className="font-serif text-lg font-semibold">{title}</h1>
           </div>
         </div>
+        {email && (
+          <div className="hidden sm:flex items-center gap-3">
+            <span className="text-xs text-muted-foreground truncate max-w-[180px]">{email}</span>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-1.5" /> Sair
+            </Button>
+          </div>
+        )}
       </div>
       {menuOpen && (
         <nav className="lg:hidden border-t border-sidebar-border px-4 py-3 space-y-2 bg-sidebar">
