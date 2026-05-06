@@ -15,7 +15,6 @@ import {
   MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import logoMark from "@/assets/logo-inventaria-mark.png";
 import advocacyLogo from "@/assets/advocacy-ai-logo.png";
 
 const modulos = [
@@ -69,13 +68,13 @@ export default function Landing() {
         <div className="relative max-w-5xl mx-auto text-center space-y-8">
           <span className="tag-chip">Legal AI Lab · Sucessões · Holding · AI-Native</span>
 
-          <div className="mx-auto w-40 h-40 lg:w-48 lg:h-48 rounded-2xl bg-gradient-to-br from-background to-secondary/40 p-4 shadow-2xl glow-border flex items-center justify-center border border-primary/20">
+          <div className="mx-auto w-40 h-40 lg:w-48 lg:h-48 rounded-2xl bg-white p-3 shadow-2xl glow-border flex items-center justify-center">
             <img
-              src={logoMark}
+              src="/images/logo-inventaria-icon.png"
               alt="Inventaria.AI — Plataforma de Sucessões com IA"
               width={192}
               height={192}
-              className="w-full h-full object-contain drop-shadow-[0_0_18px_rgba(0,212,255,0.45)]"
+              className="w-full h-full object-contain"
             />
           </div>
 
