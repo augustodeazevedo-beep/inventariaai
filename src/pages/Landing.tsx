@@ -43,7 +43,7 @@ const modulos = [
     chip: "DRAFTING",
     icon: FileText,
     title: "Gerador de Petição (IA)",
-    desc: "Minutas no padrão DPE/RS — formatação técnica, hierarquia numerada, anti-alucinação e pedidos principais, subsidiários e sucessivos.",
+    desc: "Minutas em padrão técnico-formal — formatação ABNT/forense, hierarquia numerada, anti-alucinação e pedidos principais, subsidiários e sucessivos.",
     href: "/peticao",
   },
 ];
@@ -88,7 +88,7 @@ export default function Landing() {
           <p className="text-base lg:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Plataforma jurídica com IA que integra <span className="text-foreground font-medium">planejamento patrimonial e sucessório</span> —
             holding familiar, doação em vida, inventário, partilha e ITCMD —
-            com cálculos automáticos, estratégia processual e geração de peças em conformidade com Defensoria Pública, CNJ e OAB.
+            com cálculos automáticos, estratégia processual e geração de peças em conformidade com as diretrizes do CNJ e da OAB.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
@@ -120,7 +120,7 @@ export default function Landing() {
           >
             Advocacy.IA
           </a>{" "}
-          — desenhado para Defensores Públicos e advogados que buscam precisão técnica
+          — desenhado para advogados que buscam precisão técnica
           e velocidade na atuação em direito sucessório.
         </p>
       </section>
