@@ -99,7 +99,20 @@ export default function Auth() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+              {mode === "login" && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) { toast.error("Informe seu e-mail acima primeiro."); return; }
+                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (error) toast.error(error.message); else toast.success("E-mail de redefinição enviado.");
+                  }}
+                  className="text-xs text-primary hover:underline self-start"
+                >Esqueci minha senha</button>
+              )}
             </div>
             <Button type="submit" disabled={loading} className="w-full">
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

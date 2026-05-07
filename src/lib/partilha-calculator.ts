@@ -4,23 +4,24 @@ export function calcularPartilha(state: PartilhaState): ResultadoPartilha {
   const monteMor = state.bens.reduce((sum, b) => sum + b.valorEstimado, 0);
   const dividas = state.dividas;
   
-  // Calcular meação (50% dos bens adquiridos na constância do casamento para regimes com comunhão)
+  // Calcular meação (50% dos bens da meação, ANTES da dedução de dívidas para evitar dupla dedução)
   let meacao = 0;
   const regimesComMeacao: string[] = ["comunhao_parcial", "comunhao_universal", "participacao_final_aquestos"];
-  
+
   if (state.deCujus.possuiConjugeSobrevivente && regimesComMeacao.includes(state.deCujus.regimeBens)) {
     if (state.deCujus.regimeBens === "comunhao_universal") {
-      meacao = (monteMor - dividas) * 0.5;
+      meacao = monteMor * 0.5;
     } else {
-      // Comunhão parcial: meação apenas sobre bens adquiridos na constância
+      // Comunhão parcial / participação final: meação apenas sobre bens adquiridos na constância
       const bensConstancia = state.bens
         .filter(b => b.adquiridoNaConstancia)
         .reduce((sum, b) => sum + b.valorEstimado, 0);
       meacao = bensConstancia * 0.5;
     }
   }
-  
-  const heranca = monteMor - dividas - meacao;
+
+  // Dívidas são deduzidas uma única vez do que resta do espólio (após meação)
+  const heranca = Math.max(0, monteMor - meacao - dividas);
   
   // Distribuir herança entre herdeiros
   const herdeirosAtivos = state.herdeiros.filter(h => h.concorre);
@@ -50,10 +51,10 @@ export function calcularPartilha(state: PartilhaState): ResultadoPartilha {
   
   const quadroIndividual = herdeirosAtivos.map(h => {
     let quinhao = 0;
-    
-    if (state.preferencias.tipoDivisao === "igualitaria") {
-      // Divisão igualitária entre todos os herdeiros
-      // Regras simplificadas do Código Civil
+
+    // Aplicar regras do Código Civil em todos os modos. tipoDivisao apenas modifica a divisão final.
+    {
+      // Regras simplificadas do Código Civil (Art. 1.829)
       if (conjugeHerdeiro && temDescendentes && h.parentesco === "conjuge") {
         // Cônjuge concorre com descendentes no regime de comunhão parcial
         if (state.deCujus.regimeBens === "comunhao_parcial") {
@@ -90,9 +91,6 @@ export function calcularPartilha(state: PartilhaState): ResultadoPartilha {
         const remanescente = parteLegitimaTotal - quotaConjuge;
         quinhao = outrosHerdeiros.length > 0 ? remanescente / outrosHerdeiros.length : 0;
       }
-    } else {
-      // Divisão igualitária simples
-      quinhao = parteLegitimaTotal / numHerdeiros;
     }
     
     const itcmd = state.preferencias.simularItcmd

@@ -159,8 +159,7 @@ export default function GeradorPeticao() {
       }
 
       toast.success("Petição gerada com sucesso!");
-    } catch (e) {
-      console.error(e);
+    } catch {
       toast.error("Erro de conexão. Verifique sua rede e tente novamente.");
     } finally {
       setIsLoading(false);
@@ -180,14 +179,14 @@ export default function GeradorPeticao() {
           Gerador de Petição Inicial
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
-          Gere rascunhos de petições iniciais de inventário via IA, com fundamentação jurídica e formatação DPE.
+          Gere rascunhos de petições iniciais de inventário via IA, com fundamentação jurídica e formatação técnico-forense.
         </p>
       </div>
 
       <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 flex items-start gap-2">
         <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
         <p className="text-xs text-destructive">
-          <strong>ATENÇÃO:</strong> A peça gerada é um RASCUNHO. Deve ser revisada, adaptada e assinada por Defensor(a) Público(a) antes do protocolo.
+          <strong>ATENÇÃO:</strong> A peça gerada é um RASCUNHO. Deve ser revisada, adaptada e assinada por advogado(a) responsável antes do protocolo.
           A IA pode alucinar — verifique todos os artigos de lei, jurisprudência e dados citados.
         </p>
       </div>

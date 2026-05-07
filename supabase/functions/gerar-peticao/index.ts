@@ -1,13 +1,35 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const ALLOWED_ORIGIN = Deno.env.get("ALLOWED_ORIGIN") ?? "https://inventariaai.lovable.app";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-  "Access-Control-Expose-Headers": "x-request-id",
-};
+// Dynamic CORS: refletir o Origin da requisição se ele for confiável.
+const STATIC_ALLOWED = new Set<string>([
+  "https://inventariaai.lovable.app",
+]);
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (STATIC_ALLOWED.has(origin)) return true;
+  try {
+    const url = new URL(origin);
+    const host = url.hostname;
+    return (
+      host.endsWith(".lovable.app") ||
+      host.endsWith(".lovableproject.com") ||
+      host === "localhost" ||
+      host === "127.0.0.1"
+    );
+  } catch {
+    return false;
+  }
+}
+function buildCors(origin: string | null): Record<string, string> {
+  const allowed = isAllowedOrigin(origin) ? (origin as string) : "https://inventariaai.lovable.app";
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Vary": "Origin",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "Access-Control-Expose-Headers": "x-request-id",
+  };
+}
 
 // Erros mais comuns observados:
 // 401 unauthorized      -> sessão do cliente expirou ou JWT ausente/ inválido
@@ -50,6 +72,7 @@ async function audit(entry: {
 const SYSTEM_PROMPT = "Você é um DEFENSOR PÚBLICO (USP; doutorado/PhD) especialista em Direito das Sucessões, Processo Civil e Direito Tributário, com atuação consolidada em inventários litigiosos de alta complexidade.\n\nSua linguagem é técnico-jurídica, formal, persuasiva e institucional, compatível com peças protocoladas perante Vara de Família e Sucessões, resguardando sempre os interesses do assistido da Defensoria Pública.\n\nREGRAS ABSOLUTAS — ANTI-ALUCINAÇÃO:\n1. Não invente dados. Dados ausentes devem usar [PLACEHOLDER: descrição].\n2. Toda referência a prova deve citar o NOME DO DOCUMENTO.\n3. Citações legais devem ser transcritas literalmente com fonte completa.\n4. Qualquer simulação de dado deve ser marcada como (FICTÍCIO).\n\nFORMATAÇÃO PADRÃO DPE.RS:\n- Títulos Principais em MAIÚSCULAS, negrito\n- Subtítulos com letras maiúsculas iniciais, negrito\n- Títulos numerados hierarquicamente: I. / I.1. / I.1.a.\n- Texto limpo, sem marcas de IA, sem símbolos estranhos\n\nESTRUTURA DA PETIÇÃO:\n1. Endereçamento (Vara de Família e Sucessões)\n2. Qualificação do requerente (Defensor Público) e do AUTOR DA HERANÇA (MAIÚSCULAS)\n3. Síntese fática (óbito, vínculos, contexto)\n4. Fundamentação jurídica (CPC e CC — transcrever artigos citados)\n5. Relação de bens e direitos (se conhecidos)\n6. Relação de dívidas conhecidas\n7. Ordem de vocação hereditária com herdeiros identificados (NOMES MAIÚSCULOS)\n8. Indicação do inventariante\n9. Pedidos finais numerados\n10. Local, data e assinatura\n\nSe o inventário for LITIGIOSO, inclua obrigatoriamente:\n- Capítulo sobre o caráter litigioso\n- Capítulo sobre desconhecimento patrimonial (se aplicável)\n- Capítulo sobre diligências investigativas (bancárias, fiscais, registrárias, veiculares, societárias, digitais)\n- Capítulo sobre ocultação patrimonial, simulação e doações inoficiosas (se aplicável)\n- Capítulo sobre posse exclusiva de bens e frutos (se aplicável)\n- Capítulo sobre cessões de direitos hereditários (se aplicável)\n- Capítulo sobre heranças cumulativas (se aplicável)\n- Pedidos subsidiários e condicionais\n\nSAÍDA PÓS-PEÇA (OBRIGATÓRIO):\nApós a petição, inclua seção OBSERVAÇÕES AO OPERADOR com:\n- Lista de PLACEHOLDERS com descrição\n- Recomendações documentais imediatas\n- Indicação: PEÇA GERADA COMO RASCUNHO — revisar, adaptar e assinar por Defensor(a) Público(a) antes do protocolo";
 
 serve(async (req) => {
+  const corsHeaders = buildCors(req.headers.get("Origin"));
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -83,6 +106,25 @@ serve(async (req) => {
       });
     }
     userId = userData.user.id;
+
+    // Rate limit por usuário: máx 10 chamadas/min (mitiga abuso de créditos AI)
+    try {
+      const since = new Date(Date.now() - 60_000).toISOString();
+      const { count } = await auditClient
+        .from("peticao_audit_logs")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", since);
+      if ((count ?? 0) >= 10) {
+        await audit({ request_id: requestId, user_id: userId, status: "rate_limited_user", http_status: 429, duration_ms: Date.now() - startedAt, error_code: "user_quota_exceeded" });
+        return new Response(JSON.stringify({ error: "Limite por usuário excedido. Aguarde 1 minuto." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
+        });
+      }
+    } catch (e) {
+      console.error("rate_limit_check_failed", requestId, e);
+    }
 
     let body: any;
     try {
@@ -156,7 +198,7 @@ serve(async (req) => {
   } catch (e) {
     console.error("gerar-peticao error:", requestId, e);
     await audit({ request_id: requestId, user_id: userId, status: "internal_error", http_status: 500, tipo_peticao: tipoPeticao, duration_ms: Date.now() - startedAt, error_code: e instanceof Error ? e.name : "unknown" });
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Erro interno ao gerar a petição.", request_id: requestId }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json", "x-request-id": requestId },
     });
@@ -212,14 +254,15 @@ function buildPromptFromData(dados: any): string {
 
   if (flags) {
     const flagsAtivos: string[] = [];
-    if (flags.desconhecimentoPatrimonial) flagsAtivos.push("Desconhecimento patrimonial: " + flags.descricaoDesconhecimento);
-    if (flags.ocultacaoPatrimonial) flagsAtivos.push("Ocultação patrimonial: " + flags.descricaoOcultacao);
-    if (flags.doacaoInoficiosa) flagsAtivos.push("Doação inoficiosa: " + flags.descricaoDoacaoInoficiosa);
-    if (flags.simulacaoNegocioJuridico) flagsAtivos.push("Simulação: " + flags.descricaoSimulacao);
-    if (flags.alienacaoEmVida) flagsAtivos.push("Alienação em vida: " + flags.descricaoAlienacao);
-    if (flags.posseExclusivaBens) flagsAtivos.push("Posse exclusiva por: " + flags.possuidorExclusivo + ". " + flags.descricaoPosseExclusiva);
-    if (flags.cobrancaFrutosAlugueis) flagsAtivos.push("Cobrança de frutos: " + flags.descricaoFrutos);
-    if (flags.conflitosEntreHerdeiros) flagsAtivos.push("Conflitos: " + flags.descricaoConflitos);
+    const safe = (v: any) => (v && String(v).trim() ? String(v).trim() : "[sem descrição]");
+    if (flags.desconhecimentoPatrimonial) flagsAtivos.push("Desconhecimento patrimonial: " + safe(flags.descricaoDesconhecimento));
+    if (flags.ocultacaoPatrimonial) flagsAtivos.push("Ocultação patrimonial: " + safe(flags.descricaoOcultacao));
+    if (flags.doacaoInoficiosa) flagsAtivos.push("Doação inoficiosa: " + safe(flags.descricaoDoacaoInoficiosa));
+    if (flags.simulacaoNegocioJuridico) flagsAtivos.push("Simulação: " + safe(flags.descricaoSimulacao));
+    if (flags.alienacaoEmVida) flagsAtivos.push("Alienação em vida: " + safe(flags.descricaoAlienacao));
+    if (flags.posseExclusivaBens) flagsAtivos.push("Posse exclusiva por: " + safe(flags.possuidorExclusivo) + ". " + safe(flags.descricaoPosseExclusiva));
+    if (flags.cobrancaFrutosAlugueis) flagsAtivos.push("Cobrança de frutos: " + safe(flags.descricaoFrutos));
+    if (flags.conflitosEntreHerdeiros) flagsAtivos.push("Conflitos: " + safe(flags.descricaoConflitos));
 
     if (flagsAtivos.length > 0) {
       lines.push("", "=== ELEMENTOS DE LITIGIOSIDADE ===");

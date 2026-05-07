@@ -1,65 +1,81 @@
-## Resultado da auditoria de segurança
 
-Executei nova varredura completa após as correções anteriores:
+# Auditoria de Código, Segurança e Privacidade — Inventaria.AI
 
-- **Security scanner:** ✅ Nenhum problema encontrado.
-- **Database linter (Supabase):** ✅ Nenhum issue.
-- **Auth config:** ✅ HIBP ativo, signup com confirmação de email.
-- **Edge function `gerar-peticao`:** ✅ JWT validado em código, CORS restrito a `https://inventariaai.lovable.app`, sem segredos vazados.
-- **RLS:** Não há tabelas públicas no schema (não há dados sensíveis expostos no momento).
+## 1. Resultado dos varredores automáticos
 
-Conclusão: postura de segurança atual está limpa. O que falta é **observabilidade** (logs de auditoria) — endereçada abaixo.
+- **Security Scanner Lovable**: nenhum achado.
+- **Supabase Linter (DB)**: nenhum issue.
+- **RLS** em `peticao_audit_logs`: SELECT restrito por `auth.uid() = user_id`; INSERT/UPDATE/DELETE bloqueados a roles públicos (insert é feito via service role na edge function — correto).
+- **Edge function `gerar-peticao`**: exige Bearer JWT, valida com `getUser`, audita request_id, status, http_status, duração — sem PII.
 
-## Problema do acesso externo (https://inventariaai.lovable.app)
+## 2. Achados da revisão manual
 
-O HTML publicado responde 200, mas o bundle servido é **antigo** (o `<title>` ainda diz "Inventario Inteligente, do diagnostico a sentenca", anterior à reescrita do slogan). Ou seja: o site publicado **não foi atualizado** desde as últimas mudanças (landing, cores do logo, correções de segurança do `GeradorPeticao.tsx`).
+### 🔴 Crítico
+Nenhum.
 
-No Lovable, **mudanças de frontend exigem clique manual em "Update" no diálogo Publish** para irem ao ar (somente backend/edge functions/DB sobem automaticamente). É por isso que o link externo aparece "preto/quebrado": versão obsoleta do JS.
+### 🟠 Alto
+1. **CORS fixo em produção quebra preview / domínios**
+   `supabase/functions/gerar-peticao/index.ts` define `Access-Control-Allow-Origin = https://inventariaai.lovable.app`. Isso bloqueia chamadas vindas de:
+   - URL de preview (`*.lovableproject.com`)
+   - URL de preview com ID (`id-preview--*.lovable.app`)
+   - Eventual domínio próprio.
+   **Correção:** validar `Origin` contra allowlist (lovable.app, lovableproject.com, custom domain) e refletir o origin permitido no header.
 
-Ação necessária após este plano: clicar em **Publish → Update** para republicar.
+2. **Vazamento de mensagem de erro interna no catch genérico**
+   No `catch` final, a resposta retorna `e.message` diretamente para o cliente. Pode expor detalhes internos. **Correção:** retornar mensagem genérica e manter detalhes apenas no log/audit.
 
-## Plano de implementação
+### 🟡 Médio
+3. **Lógica de partilha — divergência de "tipoDivisao"**
+   Em `src/lib/partilha-calculator.ts` o branch `else` (linha 93) está comentado como “igualitária simples”, mas é executado quando `tipoDivisao !== "igualitaria"`. A lógica correta de Código Civil só roda quando o usuário escolhe "igualitaria"; outros modos (`legitima`, `proporcional`, etc.) caem em divisão simples por número total de herdeiros — ignora cônjuge x descendentes e regimes. **Correção:** padronizar para sempre aplicar regras do CC e usar `tipoDivisao` apenas para preferências auxiliares.
 
-### 1. Tabela de auditoria `peticao_audit_logs`
-Migration nova com:
-- `id uuid pk`, `user_id uuid`, `created_at timestamptz default now()`
-- `status text` (success / unauthorized / rate_limited / no_credits / ai_error / internal_error / validation_error)
-- `http_status int`
-- `tipo_peticao text` (ex.: `inventario_consensual`) — sem dados pessoais
-- `duration_ms int`
-- `error_code text` (curto, sem stack)
-- `request_id text` (uuid gerado por chamada, devolvido ao cliente)
+4. **Cálculo da meação na comunhão universal**
+   `meacao = (monteMor − dividas) * 0.5` desconta dívidas antes da meação, mas em seguida `heranca = monteMor − dividas − meacao`, o que faz dívidas serem deduzidas duas vezes. **Correção:** calcular meação sobre `monteMor*0.5` e depois `heranca = monteMor − meacao − dividas` (dívidas deduzidas uma única vez).
 
-RLS:
-- Habilitar RLS.
-- Policy SELECT: usuário lê apenas `user_id = auth.uid()`.
-- Sem policy INSERT (writes só pela edge function via service role).
+5. **ITCMD — fração e acumulação**
+   `CalculadoraItcmd.tsx` aplica `valor * fração/100` apenas no monte, mas calcula ITCMD por beneficiário usando o `acumulado` total para cada beneficiário independentemente — pode superestimar quando há vários beneficiários distintos com bases independentes. **Correção:** acumulado é por par doador/donatário; aplicar individualmente, não global.
 
-### 2. Atualizar edge function `gerar-peticao`
-- Gerar `request_id` no início.
-- Cliente com `SERVICE_ROLE_KEY` apenas para gravar o log (separado do client de auth).
-- Inserir 1 linha em `peticao_audit_logs` em cada caminho de saída (sucesso, 401, 402, 429, 500, validation).
-- **Não** logar `dados`, nomes, CPF ou conteúdo da petição. Somente metadados acima.
-- Adicionar `console.log` estruturado JSON (`{request_id, user_id, status, http_status, duration_ms}`) — visível em Edge Function Logs.
-- Validação simples do payload (presença de `dados` objeto) → status `validation_error`.
+6. **`possuidorExclusivo` e demais campos opcionais entram no prompt mesmo quando `posseExclusivaBens=false`** (linha 220 do edge). Risco de incluir lixo no prompt e gerar alucinação. **Correção:** já há filtro por flag — confirmar e remover concatenações de string `undefined`.
 
-### 3. Cliente
-- Em `src/pages/GeradorPeticao.tsx`: ler `x-request-id` do header de resposta e exibir no toast de erro ("Código: …") para suporte.
+7. **GeradorPeticao não usa dados da Triagem**
+   Página gera petição apenas com nome/data — todo o restante vai como `[PLACEHOLDER]`. Sem persistência da triagem, fluxo prometido na landing ("da triagem à sentença") não se concretiza. **Correção (futuro):** persistir triagem no DB ou em sessionStorage e injetar em `dados`.
 
-### 4. Análise dos erros mais comuns (documentar no README curto da função)
-Comentário no topo de `gerar-peticao/index.ts` com tabela: 401 (sessão expirada), 402 (créditos), 429 (rate limit), 500 (gateway IA), validation_error (payload faltando).
+### 🟢 Baixo / Hardening
+8. **Senha mínima 6** no Auth.tsx — usar mínimo 8 + ativar **HIBP leaked password check** via `configure_auth`.
+9. **Sem rate limit por usuário** no edge — Lovable AI Gateway protege globalmente, mas adicionar contagem em `peticao_audit_logs` (ex.: máx 10 chamadas/min por user_id) reduz abuso.
+10. **`console.error(e)` em GeradorPeticao.tsx (linha 163)** pode logar token/dados em browser. Trocar por mensagem genérica.
+11. **`Auth.tsx`**: `emailRedirectTo: window.location.origin + "/"` está OK, mas falta página `/reset-password` e link "Esqueci minha senha".
+12. **Alerta visual sobre "padrão DPE"** ainda aparece em `GeradorPeticao.tsx` (linha 183) — inconsistente com a decisão de neutralizar a linguagem (advogados particulares).
 
-### Detalhes técnicos
+## 3. Plano de correção (a executar após aprovação)
 
-```text
-client → POST /gerar-peticao (Bearer JWT)
-  ├─ valida JWT (getUser)         → falha: log status=unauthorized 401
-  ├─ valida payload                → falha: log status=validation_error 400
-  ├─ chama Lovable AI Gateway
-  │    ├─ 429 → log rate_limited
-  │    ├─ 402 → log no_credits
-  │    └─ !ok → log ai_error 500
-  └─ stream OK → log success 200 (após start do stream)
-```
+### Backend
+- Editar `supabase/functions/gerar-peticao/index.ts`:
+  - Implementar CORS dinâmico com allowlist (`*.lovable.app`, `*.lovableproject.com`, custom).
+  - Sanitizar resposta de erro do `catch` final (não vazar `e.message`).
+  - Adicionar rate limit simples: `select count(*) from peticao_audit_logs where user_id=$1 and created_at > now()-interval '1 minute'` → bloquear se ≥10.
+  - Garantir que apenas flags ativas entram no prompt.
 
-Sem alteração de schema em tabelas existentes. Nenhum dado sensível persistido.
+### Frontend
+- `src/lib/partilha-calculator.ts`:
+  - Corrigir dupla dedução de dívidas em comunhão universal.
+  - Aplicar regras do CC em todos os modos de divisão (não apenas "igualitaria"); manter `tipoDivisao` só para variações documentadas.
+- `src/pages/CalculadoraItcmd.tsx`: revisar acumulado individual por beneficiário.
+- `src/pages/GeradorPeticao.tsx`:
+  - Trocar texto "formatação DPE" por "formatação técnico-forense".
+  - Remover `console.error(e)`.
+- `src/pages/Auth.tsx`:
+  - `minLength={8}`.
+  - Adicionar link "Esqueci minha senha" + página `/reset-password`.
+
+### Segurança backend (auth)
+- Habilitar **HIBP password check** via `configure_auth(password_hibp_enabled: true)`.
+
+### Persistência (opcional, médio prazo)
+- Criar tabela `triagens` com RLS por `user_id` e popular `GeradorPeticao` automaticamente a partir da última triagem do usuário.
+
+## 4. Sobre o link público https://inventariaai.lovable.app
+A causa mais provável da inacessibilidade externa relatada é justamente o item **#1 (CORS fixo)** combinado com o `verify_jwt` da edge — usuários não logados disparavam OPTIONS/POST e recebiam erro de origem ou 401. Após o fix do CORS dinâmico + página de login funcional, o acesso externo deve normalizar. Se persistir, será necessário re-publicar (Frontend changes exigem clique em "Update" no diálogo Publish).
+
+---
+
+Aprove para que eu execute as correções acima na ordem: Alto → Médio → Hardening.
