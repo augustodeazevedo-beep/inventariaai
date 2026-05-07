@@ -212,7 +212,7 @@ export default function GeradorPeticao() {
 
             <div className="space-y-2">
               <Label>Nome do Falecido</Label>
-              <Input value={nomeFalecido} onChange={(e) => setNomeFalecido(e.target.value)} placeholder="Nome completo" />
+              <Input value={nomeFalecido} onChange={(e) => setNomeFalecido(e.target.value)} placeholder="Nome completo" maxLength={200} />
             </div>
 
             <div className="space-y-2">
@@ -226,10 +226,12 @@ export default function GeradorPeticao() {
               <Label>Contexto adicional / Instruções</Label>
               <Textarea
                 value={contextoAdicional}
-                onChange={(e) => setContextoAdicional(e.target.value)}
+                onChange={(e) => setContextoAdicional(e.target.value.slice(0, 2000))}
                 placeholder="Adicione detalhes relevantes: fatos específicos, pedidos especiais, particularidades do caso..."
                 rows={6}
+                maxLength={2000}
               />
+              <p className="text-[10px] text-muted-foreground text-right">{contextoAdicional.length}/2000</p>
             </div>
 
             <Button onClick={gerarPeticao} disabled={isLoading} className="w-full">
