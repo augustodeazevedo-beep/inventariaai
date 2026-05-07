@@ -68,14 +68,18 @@ export default function Landing() {
           <span className="tag-chip">Legal AI Lab · Sucessões · Holding · AI-Native</span>
 
           <img
-            src="/images/logo-inventaria-icon.png"
-            alt="Inventaria.AI — Plataforma de Sucessões com IA"
+            src="/images/logo-inventaria-icon-192.png"
+            srcSet="/images/logo-inventaria-icon-192.png 1x, /images/logo-inventaria-icon-384.png 2x"
+            sizes="(min-width: 1024px) 192px, 160px"
             width={192}
             height={192}
+            alt="Inventaria.AI — Plataforma de Sucessões com IA"
+            fetchPriority="high"
+            decoding="async"
             className="mx-auto w-40 h-40 lg:w-48 lg:h-48 object-contain drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]"
           />
 
-          <div className="font-serif font-bold text-3xl lg:text-4xl tracking-tight">
+          <div className="font-serif font-bold tracking-tight leading-none mt-3 text-2xl sm:text-3xl lg:text-4xl">
             <span className="text-white">Inventaria</span>
             <span className="text-primary">.AI</span>
           </div>
