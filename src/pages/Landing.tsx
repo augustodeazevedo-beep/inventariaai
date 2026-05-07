@@ -67,15 +67,13 @@ export default function Landing() {
         <div className="relative max-w-5xl mx-auto text-center space-y-8">
           <span className="tag-chip">Legal AI Lab · Sucessões · Holding · AI-Native</span>
 
-          <div className="mx-auto w-40 h-40 lg:w-48 lg:h-48 rounded-2xl bg-white p-3 shadow-2xl glow-border flex items-center justify-center">
-            <img
-              src="/images/logo-inventaria-icon.png"
-              alt="Inventaria.AI — Plataforma de Sucessões com IA"
-              width={192}
-              height={192}
-              className="w-full h-full object-contain"
-            />
-          </div>
+          <img
+            src="/images/logo-inventaria-icon.png"
+            alt="Inventaria.AI — Plataforma de Sucessões com IA"
+            width={192}
+            height={192}
+            className="mx-auto w-40 h-40 lg:w-48 lg:h-48 object-contain drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]"
+          />
 
           <h1 className="font-serif font-bold leading-[1.05] tracking-tight text-4xl sm:text-5xl lg:text-7xl">
             <span className="block gradient-text">Sucessão Inteligente</span>
@@ -235,16 +233,14 @@ export default function Landing() {
               rel="noopener noreferrer"
               className="flex items-center gap-3 group"
             >
-              <div className="w-14 h-14 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-lg">
-                <img
-                  src={advocacyLogo}
-                  alt="Advocacy.AI"
-                  width={56}
-                  height={56}
-                  loading="lazy"
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <img
+                src={advocacyLogo}
+                alt="Advocacy.AI"
+                width={56}
+                height={56}
+                loading="lazy"
+                className="w-14 h-14 object-contain drop-shadow-lg"
+              />
               <div className="leading-tight">
                 <div className="font-serif font-bold text-xl">
                   <span className="text-foreground">Advocacy</span>

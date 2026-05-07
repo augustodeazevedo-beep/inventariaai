@@ -70,9 +70,7 @@ export default function Auth() {
       <div className="absolute inset-0 bg-page-overlay" />
       <div className="relative w-full max-w-md">
         <Link to="/" className="flex flex-col items-center gap-3 mb-6">
-          <div className="bg-white rounded-2xl p-4 shadow-2xl">
-            <img src="/images/logo-inventaria-full.png" alt="Inventaria.AI by Advocacy.AI" className="h-28 w-auto object-contain" />
-          </div>
+          <img src="/images/logo-inventaria-full.png" alt="Inventaria.AI by Advocacy.AI" className="h-32 w-auto object-contain drop-shadow-2xl" />
         </Link>
         <Card className="p-6 backdrop-blur-sm bg-card/80 border-border">
           <div className="flex gap-2 mb-6 p-1 rounded-lg bg-muted">
@@ -138,9 +136,7 @@ export default function Auth() {
           rel="noopener noreferrer"
           className="mt-5 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
         >
-          <div className="w-7 h-7 rounded-md bg-white p-0.5 flex items-center justify-center">
-            <img src={advocacyLogo} alt="Advocacy.AI" className="w-full h-full object-contain" />
-          </div>
+          <img src={advocacyLogo} alt="Advocacy.AI" className="w-7 h-7 object-contain" />
           <span className="text-xs text-muted-foreground">
             Um produto <span className="text-foreground font-semibold">Advocacy<span className="text-primary">.AI</span></span>
           </span>
