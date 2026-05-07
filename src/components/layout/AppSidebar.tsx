@@ -17,14 +17,12 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col w-72 bg-sidebar text-sidebar-foreground border-r border-sidebar-border min-h-screen">
-      <Link to="/" className="block p-4 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
-        <div className="bg-white rounded-xl p-3 flex items-center justify-center">
-          <img
-            src="/images/logo-inventaria-full.png"
-            alt="Inventaria.AI by Advocacy.AI"
-            className="w-full h-auto max-h-28 object-contain"
-          />
-        </div>
+      <Link to="/" className="block p-4 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors flex items-center justify-center">
+        <img
+          src="/images/logo-inventaria-full.png"
+          alt="Inventaria.AI by Advocacy.AI"
+          className="w-full h-auto max-h-32 object-contain"
+        />
       </Link>
       <nav className="flex-1 p-3 space-y-1">
         {menuItems.map((item) => {
@@ -54,9 +52,7 @@ export function AppSidebar() {
           rel="noopener noreferrer"
           className="flex items-center gap-3 opacity-80 hover:opacity-100 transition-opacity"
         >
-          <div className="w-9 h-9 rounded-md bg-white p-1 flex items-center justify-center shrink-0">
-            <img src={advocacyLogo} alt="Advocacy.AI" className="w-full h-full object-contain" />
-          </div>
+          <img src={advocacyLogo} alt="Advocacy.AI" className="w-9 h-9 object-contain shrink-0" />
           <div className="leading-tight">
             <span className="block text-[9px] uppercase tracking-[0.2em] text-sidebar-foreground/60">Um produto</span>
             <span className="font-serif font-bold text-sm">
