@@ -20,11 +20,17 @@ export function AppSidebar() {
       <Link to="/" className="block p-4 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
         <div className="flex flex-col items-center gap-2">
           <img
-            src="/images/logo-inventaria-icon.png"
+            src="/images/logo-inventaria-icon-128.png"
+            srcSet="/images/logo-inventaria-icon-128.png 1x, /images/logo-inventaria-icon-256.png 2x, /images/logo-inventaria-icon-384.png 3x"
+            sizes="80px"
+            width={80}
+            height={80}
             alt="Inventaria.AI"
+            loading="eager"
+            decoding="async"
             className="w-20 h-20 object-contain"
           />
-          <div className="font-serif font-bold text-xl tracking-tight">
+          <div className="font-serif font-bold text-lg lg:text-xl tracking-tight leading-none">
             <span className="text-white">Inventaria</span>
             <span className="text-primary">.AI</span>
           </div>
