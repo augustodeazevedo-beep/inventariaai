@@ -75,6 +75,11 @@ export default function Landing() {
             className="mx-auto w-40 h-40 lg:w-48 lg:h-48 object-contain drop-shadow-[0_0_30px_hsl(var(--primary)/0.4)]"
           />
 
+          <div className="font-serif font-bold text-3xl lg:text-4xl tracking-tight">
+            <span className="text-white">Inventaria</span>
+            <span className="text-primary">.AI</span>
+          </div>
+
           <h1 className="font-serif font-bold leading-[1.05] tracking-tight text-4xl sm:text-5xl lg:text-7xl">
             <span className="block gradient-text">Sucessão Inteligente</span>
             <span className="block text-foreground/90 text-3xl sm:text-4xl lg:text-5xl mt-2">
