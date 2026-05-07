@@ -159,8 +159,7 @@ export default function GeradorPeticao() {
       }
 
       toast.success("Petição gerada com sucesso!");
-    } catch (e) {
-      console.error(e);
+    } catch {
       toast.error("Erro de conexão. Verifique sua rede e tente novamente.");
     } finally {
       setIsLoading(false);
