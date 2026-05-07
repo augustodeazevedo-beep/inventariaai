@@ -235,16 +235,14 @@ export default function Landing() {
               rel="noopener noreferrer"
               className="flex items-center gap-3 group"
             >
-              <div className="w-14 h-14 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-lg">
-                <img
-                  src={advocacyLogo}
-                  alt="Advocacy.AI"
-                  width={56}
-                  height={56}
-                  loading="lazy"
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <img
+                src={advocacyLogo}
+                alt="Advocacy.AI"
+                width={56}
+                height={56}
+                loading="lazy"
+                className="w-14 h-14 object-contain drop-shadow-lg"
+              />
               <div className="leading-tight">
                 <div className="font-serif font-bold text-xl">
                   <span className="text-foreground">Advocacy</span>
