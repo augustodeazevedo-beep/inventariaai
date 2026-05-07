@@ -88,14 +88,11 @@ export default function Landing() {
             com cálculos automáticos, estratégia processual e geração de peças em conformidade com as diretrizes do CNJ e da OAB.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+          <div className="flex justify-center pt-2">
             <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
               <Link to="/auth">
                 Entrar / Criar conta <ArrowRight className="w-4 h-4" />
               </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="border-accent/40 text-accent hover:bg-accent/10 hover:text-accent">
-              <Link to="/triagem">Acessar Plataforma</Link>
             </Button>
           </div>
         </div>
