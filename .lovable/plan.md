@@ -1,42 +1,45 @@
-## Diagnóstico
+## Objetivo
 
-**1. Fundo dos logotipos**
-Tanto `public/images/logo-inventaria-full.png` quanto `public/images/logo-inventaria-icon.png` estão **com fundo branco** (não transparente). Por isso, em todo o app, eles aparecem dentro de "caixinhas brancas" forçadas no código (`bg-white rounded-md p-1`, `bg-white rounded-2xl p-4`) — uma gambiarra para esconder o branco contra o tema escuro. Mesmo problema em `src/assets/advocacy-ai-logo.png`.
+Adicionar o wordmark "Inventaria.AI" abaixo do logotipo, com "Inventaria" em branco e ".AI" em verde-limão (cor `--primary` já presente na identidade visual), tanto na landing page quanto na aba lateral (sidebar) da plataforma.
 
-**2. Ícone errado da Advocacy.AI**
-A versão oficial em `https://advocacyai.lovable.app/` usa um ícone **"F" 3D azul/aço** (estilizado, gradiente ciano metálico) — exatamente o da `image-9.png` que você anexou. Já o asset atual `src/assets/advocacy-ai-logo.png` mostra um "F" parecido mas com a tipografia "Advocacy.AI" embaixo + texto "by Advocacy.AI" duplicado (errado para usar como ícone do rodapé). E a `image-8.png` também tem fundo escuro fixo (não transparente).
+## Alterações
 
-## Plano de correção
+### 1. `src/pages/Landing.tsx` — Hero
+Logo abaixo do `<img>` do logotipo (ícone de 192px no HERO), inserir o wordmark:
 
-### A) Substituir os 3 logos por versões com fundo 100% transparente
+```tsx
+<div className="font-serif font-bold text-3xl lg:text-4xl tracking-tight">
+  <span className="text-white">Inventaria</span>
+  <span className="text-primary">.AI</span>
+</div>
+```
 
-Vou gerar (via ferramenta de imagem com prompt fiel à identidade) novos PNGs **sem fundo**, mantendo:
-- Ícone "I" circuito verde-ciano para o Inventaria (cores existentes da marca preservadas)
-- Lockup horizontal "Inventaria.AI by Advocacy.AI" para o logo full
-- Ícone "F" azul metálico 3D oficial da Advocacy.AI (fiel ao site advocacyai.lovable.app)
+Posicionado entre a imagem do logo e o `<h1>` "Sucessão Inteligente".
 
-Arquivos a substituir:
-- `public/images/logo-inventaria-full.png` → fundo transparente
-- `public/images/logo-inventaria-icon.png` → fundo transparente
-- `src/assets/advocacy-ai-logo.png` → **apenas o ícone "F" 3D azul** (sem texto), fundo transparente — é assim que ele é usado (ao lado do texto "Advocacy.AI" renderizado em HTML)
+### 2. `src/components/layout/AppSidebar.tsx` — Marca da sidebar
+Atualmente a sidebar exibe apenas a imagem `logo-inventaria-full.png`. Substituir por: ícone (`logo-inventaria-icon.png`) + wordmark textual abaixo, com a mesma identidade:
 
-### B) Remover as "caixinhas brancas" do código
+```tsx
+<Link to="/" className="block p-4 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
+  <div className="flex flex-col items-center gap-2">
+    <img
+      src="/images/logo-inventaria-icon.png"
+      alt="Inventaria.AI"
+      className="w-20 h-20 object-contain"
+    />
+    <div className="font-serif font-bold text-xl tracking-tight">
+      <span className="text-white">Inventaria</span>
+      <span className="text-primary">.AI</span>
+    </div>
+  </div>
+</Link>
+```
 
-Agora que os PNGs serão transparentes, removo os wrappers `bg-white p-1/p-4 rounded-*` em:
-- `src/components/layout/AppHeader.tsx` (linha do logo mobile)
-- `src/pages/Auth.tsx` (cartão grande do logo Inventaria + mini-logo Advocacy no rodapé)
-- `src/pages/Landing.tsx` (rodapé com logo Advocacy + qualquer outro uso)
+Isso garante consistência visual com o footer da landing (que já usa o padrão `text-foreground` + `text-primary` para "Advocacy.AI").
 
-Os logos passarão a "respirar" sobre o fundo escuro do tema (#0a0e1a), como na referência da Advocacy.AI.
+## Notas técnicas
 
-### C) Memória de marca
-
-Atualizar `mem://branding/identity` registrando: logos sempre com fundo transparente, ícone Advocacy.AI = "F" 3D azul metálico (referência: image-9.png).
-
-## Resultado esperado
-
-- Header, sidebar, tela de Auth e rodapé exibirão os logos diretamente sobre o tema escuro, sem caixas brancas destoantes.
-- O ícone ao lado de "Advocacy.AI" no rodapé da Landing e da página Auth passará a ser o "F" 3D azul oficial — idêntico ao usado em advocacyai.lovable.app.
-- Identidade visual unificada com a desenvolvedora proprietária.
-
-Aprove para eu executar.
+- A cor "verde limão" da identidade já existe como token `--primary` (HSL 73 100% 51%), aplicada via classe `text-primary`. Não é necessário criar nova cor.
+- "Branco" será aplicado via `text-white` (Tailwind) para garantir branco puro independente do tema do sidebar.
+- Fonte serifada (`font-serif`) mantém alinhamento com o wordmark "Advocacy.AI" já existente no rodapé.
+- Nenhuma outra página é afetada; o `AppHeader` mobile mantém seu próprio rótulo.
