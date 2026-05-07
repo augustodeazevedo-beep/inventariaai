@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Landing from "@/pages/Landing";
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import CalculadoraPartilha from "@/pages/CalculadoraPartilha";
 import CalculadoraItcmd from "@/pages/CalculadoraItcmd";
@@ -26,6 +27,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route element={<AppLayout />}>
             <Route element={<ProtectedRoute />}>
               <Route path="/partilha" element={<CalculadoraPartilha />} />
