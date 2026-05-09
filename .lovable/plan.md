@@ -1,98 +1,39 @@
-# Plano: Hub Advocacy.AI (Inventaria + Peticiona + Advoga) + Auditoria
+## Mudanças na Sidebar
 
-## Contexto
+### 1. "BY ADVOCACY.AI" abaixo do logo
+No `AppSidebar.tsx`, adicionar uma linha de texto pequena, em maiúsculas com tracking aumentado, logo abaixo do wordmark "Inventaria.AI" — mesmo estilo da referência enviada (Advoga.AI):
 
-- **Inventaria.AI** (este projeto): React/Vite, sucessório.
-- **Peticiona.AI** (peticionaai-byadvocacyai.lovable.app): TanStack Start, peças/contratos.
-- **Advoga.AI** (advogaai-byadvocacy.lovable.app): TanStack Start, gestão de escritório.
-- Cada projeto tem backend Lovable Cloud (Supabase) **isolado**.
-- Sua escolha: módulos distintos + cada um mantém seu backend + SSO + App Switcher.
+```
+Inventaria.AI
+BY ADVOCACY.AI
+```
 
----
+- Texto: `text-[9px] uppercase tracking-[0.25em] text-sidebar-foreground/60`
+- Mantém o selo "Um produto Advocacy.AI" no rodapé (não duplica visualmente, pois um é header e outro rodapé — mas posso remover o do rodapé se preferir).
 
-## Parte 1 — Integração (App Switcher + SSO leve)
+### 2. Sidebar colapsável (modo ícones)
 
-Como os 3 projetos têm backends Supabase separados, "SSO real" (mesma sessão entre domínios) exigiria um Supabase central — o que conflita com "cada um mantém seu backend". A abordagem viável e de baixo atrito:
+Migrar `AppSidebar` para o padrão **shadcn `Sidebar` com `collapsible="icon"`**, que já suporta nativamente o colapso para uma barra estreita mostrando apenas os ícones.
 
-### 1.1 — Identidade compartilhada por convenção
-- Cada plataforma usa **Google OAuth como provedor primário** (já configurado aqui).
-- O usuário loga com a mesma conta Google nas 3 → identidade percebida como única, sem migração de dados.
-- Email é a chave de ligação para futura federação de dados.
+**Arquivos afetados:**
+- `src/App.tsx` — envolver `<AppLayout />` com `<SidebarProvider>`.
+- `src/components/layout/AppLayout.tsx` — remover wrapper manual; usar estrutura do shadcn.
+- `src/components/layout/AppSidebar.tsx` — reescrever usando `Sidebar`, `SidebarContent`, `SidebarMenu`, `SidebarMenuButton` etc., com `collapsible="icon"`.
+- `src/components/layout/AppHeader.tsx` — adicionar `<SidebarTrigger />` à esquerda (visível em desktop) para alternar expandido ↔ ícones. Em mobile mantém o menu existente.
 
-### 1.2 — App Switcher no header
-Componente `AppSwitcher` adicionado ao `AppHeader.tsx` (e replicado nas outras duas plataformas):
-- Botão grid (ícone 9 pontos) que abre dropdown com 3 cards: Inventaria, Peticiona, Advoga.
-- Cada card tem ícone, nome, descrição curta e badge "Atual" na plataforma corrente.
-- Clique abre a outra plataforma em nova aba (`target="_blank"`), preservando a sessão atual.
-- URLs centralizadas em `src/config/ecosystem.ts` para fácil manutenção.
+**Comportamento:**
+- Estado inicial: expandida (72 px → `w-72`).
+- Colapsada: barra estreita (`w-14`) mostrando apenas ícones do menu; logo reduz para o ícone 64 px sem o wordmark; selo "Um produto Advocacy.AI" some.
+- Tooltip nos ícones quando colapsada (nativo do shadcn).
+- Estado persistido via cookie (padrão do shadcn `SidebarProvider`).
 
-### 1.3 — Branding unificado
-- Footer/sidebar: manter "Um produto Advocacy.AI" (já existe na tela de Auth).
-- Adicionar mesmo selo no `AppSidebar` e `Landing` para reforçar pertencimento ao hub.
-
-### 1.4 — Próximos passos (fora deste plano)
-Replicar `AppSwitcher` + `ecosystem.ts` nos projetos Peticiona.AI e Advoga.AI (mudanças paralelas nos outros projetos Lovable). Será proposto separadamente.
+### 3. Não muda
+- Cores, tokens de design, lógica de rotas, ícones do menu.
+- Mobile (drawer existente continua igual).
 
 ---
 
-## Parte 2 — Auditoria completa (Segurança + Lógica)
-
-### 2.1 — Segurança (backend)
-- Rodar `supabase--linter` e `security--run_security_scan`.
-- Revisar RLS da tabela `peticao_audit_logs` (única tabela existente) — verificar se INSERT está bloqueado para clientes (deve ser, edge function usa service role).
-- Validar edge function `gerar-peticao`:
-  - Verificação de JWT em código.
-  - Validação de input com Zod.
-  - Rate limiting (atualmente ausente?).
-  - Vazamento de prompt/secrets em mensagens de erro.
-  - Headers CORS corretos.
-- Confirmar que `LOVABLE_API_KEY` e demais secrets nunca são expostos ao cliente.
-- Verificar `vite.config.ts`: hard-coded fallbacks de SUPABASE_URL/KEY são publishable (OK), mas confirmar.
-
-### 2.2 — Segurança (frontend)
-- `ProtectedRoute`: confirmar que não há flicker de conteúdo protegido durante loading.
-- Auth: validar fluxo de reset de senha (`/reset-password` existe).
-- Sanitização de input em formulários (Triagem, Partilha, ITCMD, Petição).
-- Logs no console que possam vazar dados sensíveis (CPFs, valores).
-
-### 2.3 — Lógica de negócio
-- **`partilha-calculator.ts`**: revisar cálculo conforme Art. 1.829 CC (ordem de vocação, regimes de bens, concorrência cônjuge × descendentes).
-- **`CalculadoraItcmd.tsx`**: verificar alíquotas e base de cálculo (varia por UF — confirmar se está parametrizado).
-- **`triagem-utils.ts`** + **`diligencias-investigativas.ts`**: revisar árvore de decisão judicial vs extrajudicial (Art. 610 CPC, Resolução 35/2007 CNJ).
-- **`gerar-peticao` edge function**: revisar prompt do sistema, garantir que persona "Defensor PhD" + regras anti-alucinação estão íntegras, validar streaming SSE.
-- Estados de loading e erro consistentes em todas as páginas.
-
-### 2.4 — Performance/UX
-- Lazy loading de rotas pesadas (`React.lazy` nas páginas de calculadora/petição).
-- Verificar bundle size.
-- Imagens: `srcset` já aplicado no logo; verificar outras imagens.
-
-### 2.5 — Entregável
-Relatório em `/mnt/documents/auditoria-inventaria.md` com:
-- Achados por severidade (crítico / alto / médio / baixo).
-- Correções aplicadas inline durante a auditoria (bugs óbvios).
-- Recomendações para itens que exigem decisão de produto.
-
----
-
-## Detalhes técnicos
-
-**Arquivos a criar:**
-- `src/config/ecosystem.ts` — URLs e metadata das 3 plataformas.
-- `src/components/layout/AppSwitcher.tsx` — Dropdown com cards.
-
-**Arquivos a editar:**
-- `src/components/layout/AppHeader.tsx` — Inserir `<AppSwitcher />`.
-- `src/components/layout/AppSidebar.tsx` — Reforçar selo Advocacy.AI (opcional).
-
-**Sem mudanças de schema** — não é necessária migração SQL para esta etapa.
-
-**Auditoria:** sem mudanças de arquitetura; apenas correções pontuais e relatório.
-
----
-
-## Ordem de execução
-1. Criar `ecosystem.ts` + `AppSwitcher` + integrar no header.
-2. Executar auditoria (linter + scan + revisão manual de calculadoras e edge function).
-3. Aplicar correções críticas/altas encontradas.
-4. Gerar relatório final.
+**Detalhes técnicos**
+- Usar `useSidebar()` para esconder o wordmark quando `state === "collapsed"`.
+- `SidebarTrigger` no header (sempre visível) para garantir que o usuário pode reabrir.
+- Manter `NavLink`/`useLocation` para destacar rota ativa (já existe).
