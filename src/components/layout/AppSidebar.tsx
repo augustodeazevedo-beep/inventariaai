@@ -5,7 +5,7 @@ import { useSidebarCollapse } from "./SidebarCollapseContext";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const menuItems = [
-  { label: "Início", icon: Home, href: "/" },
+  { label: "Início", icon: Home, href: "/home" },
   { label: "Triagem de Inventário", icon: FileSearch, href: "/triagem" },
   { label: "Calculadora de Partilha", icon: Scale, href: "/partilha" },
   { label: "Calculadora de ITCMD", icon: Calculator, href: "/itcmd" },

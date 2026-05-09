@@ -7,7 +7,7 @@ import { AppSwitcher } from "./AppSwitcher";
 import { useSidebarCollapse } from "./SidebarCollapseContext";
 
 const mobileMenuItems = [
-  { label: "Início", icon: Home, href: "/" },
+  { label: "Início", icon: Home, href: "/home" },
   { label: "Triagem de Inventário", icon: FileSearch, href: "/triagem" },
   { label: "Calculadora de Partilha", icon: Scale, href: "/partilha" },
   { label: "Calculadora de ITCMD", icon: Calculator, href: "/itcmd" },
@@ -17,7 +17,7 @@ const mobileMenuItems = [
 ];
 
 const pageTitles: Record<string, string> = {
-  "/": "Início",
+  "/home": "Início",
   "/partilha": "Calculadora de Partilha",
   "/itcmd": "Calculadora de ITCMD",
   "/triagem": "Triagem de Inventário",

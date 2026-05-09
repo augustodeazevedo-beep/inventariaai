@@ -8,6 +8,7 @@ import Landing from "@/pages/Landing";
 import Auth from "@/pages/Auth";
 import ResetPassword from "@/pages/ResetPassword";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import Home from "@/pages/Home";
 import CalculadoraPartilha from "@/pages/CalculadoraPartilha";
 import CalculadoraItcmd from "@/pages/CalculadoraItcmd";
 import TriagemInventario from "@/pages/TriagemInventario";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route element={<AppLayout />}>
             <Route element={<ProtectedRoute />}>
+              <Route path="/home" element={<Home />} />
               <Route path="/partilha" element={<CalculadoraPartilha />} />
               <Route path="/itcmd" element={<CalculadoraItcmd />} />
               <Route path="/triagem" element={<TriagemInventario />} />
