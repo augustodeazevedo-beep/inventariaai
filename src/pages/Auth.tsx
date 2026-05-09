@@ -20,10 +20,10 @@ export default function Auth() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/triagem", { replace: true });
+      if (data.session) navigate("/home", { replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate("/triagem", { replace: true });
+      if (session) navigate("/home", { replace: true });
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
