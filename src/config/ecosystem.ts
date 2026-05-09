@@ -1,7 +1,7 @@
-import { Scale, FileText, Briefcase, Wallet } from "lucide-react";
+import { Scale, FileText, Briefcase } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export type EcosystemAppId = "inventaria" | "peticiona" | "advoga" | "finai";
+export type EcosystemAppId = "inventaria" | "peticiona" | "advoga";
 
 export interface EcosystemApp {
   id: EcosystemAppId;
@@ -41,15 +41,6 @@ export const ECOSYSTEM_APPS: EcosystemApp[] = [
     description: "Gestão de processos e escritório",
     url: "https://advogaai-byadvocacy.lovable.app",
     icon: Briefcase,
-    accent: "text-primary",
-  },
-  {
-    id: "finai",
-    name: "Fin",
-    suffix: ".AI",
-    description: "Gestão financeira pessoal inteligente",
-    url: "https://finai-byadvocacyia.lovable.app",
-    icon: Wallet,
     accent: "text-primary",
   },
 ];
