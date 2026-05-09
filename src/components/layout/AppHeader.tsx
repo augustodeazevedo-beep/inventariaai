@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { AppSwitcher } from "./AppSwitcher";
 
 const mobileMenuItems = [
   { label: "Início", icon: Home, href: "/" },
@@ -58,14 +59,17 @@ export function AppHeader() {
             <h1 className="font-serif text-lg font-semibold">{title}</h1>
           </div>
         </div>
-        {email && (
-          <div className="hidden sm:flex items-center gap-3">
-            <span className="text-xs text-muted-foreground truncate max-w-[180px]">{email}</span>
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-1.5" /> Sair
-            </Button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <AppSwitcher />
+          {email && (
+            <div className="hidden sm:flex items-center gap-3">
+              <span className="text-xs text-muted-foreground truncate max-w-[180px]">{email}</span>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 mr-1.5" /> Sair
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
       {menuOpen && (
         <nav className="lg:hidden border-t border-sidebar-border px-4 py-3 space-y-2 bg-sidebar">

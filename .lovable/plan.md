@@ -1,45 +1,98 @@
-## Objetivo
+# Plano: Hub Advocacy.AI (Inventaria + Peticiona + Advoga) + Auditoria
 
-Adicionar o wordmark "Inventaria.AI" abaixo do logotipo, com "Inventaria" em branco e ".AI" em verde-limão (cor `--primary` já presente na identidade visual), tanto na landing page quanto na aba lateral (sidebar) da plataforma.
+## Contexto
 
-## Alterações
+- **Inventaria.AI** (este projeto): React/Vite, sucessório.
+- **Peticiona.AI** (peticionaai-byadvocacyai.lovable.app): TanStack Start, peças/contratos.
+- **Advoga.AI** (advogaai-byadvocacy.lovable.app): TanStack Start, gestão de escritório.
+- Cada projeto tem backend Lovable Cloud (Supabase) **isolado**.
+- Sua escolha: módulos distintos + cada um mantém seu backend + SSO + App Switcher.
 
-### 1. `src/pages/Landing.tsx` — Hero
-Logo abaixo do `<img>` do logotipo (ícone de 192px no HERO), inserir o wordmark:
+---
 
-```tsx
-<div className="font-serif font-bold text-3xl lg:text-4xl tracking-tight">
-  <span className="text-white">Inventaria</span>
-  <span className="text-primary">.AI</span>
-</div>
-```
+## Parte 1 — Integração (App Switcher + SSO leve)
 
-Posicionado entre a imagem do logo e o `<h1>` "Sucessão Inteligente".
+Como os 3 projetos têm backends Supabase separados, "SSO real" (mesma sessão entre domínios) exigiria um Supabase central — o que conflita com "cada um mantém seu backend". A abordagem viável e de baixo atrito:
 
-### 2. `src/components/layout/AppSidebar.tsx` — Marca da sidebar
-Atualmente a sidebar exibe apenas a imagem `logo-inventaria-full.png`. Substituir por: ícone (`logo-inventaria-icon.png`) + wordmark textual abaixo, com a mesma identidade:
+### 1.1 — Identidade compartilhada por convenção
+- Cada plataforma usa **Google OAuth como provedor primário** (já configurado aqui).
+- O usuário loga com a mesma conta Google nas 3 → identidade percebida como única, sem migração de dados.
+- Email é a chave de ligação para futura federação de dados.
 
-```tsx
-<Link to="/" className="block p-4 border-b border-sidebar-border hover:bg-sidebar-accent/30 transition-colors">
-  <div className="flex flex-col items-center gap-2">
-    <img
-      src="/images/logo-inventaria-icon.png"
-      alt="Inventaria.AI"
-      className="w-20 h-20 object-contain"
-    />
-    <div className="font-serif font-bold text-xl tracking-tight">
-      <span className="text-white">Inventaria</span>
-      <span className="text-primary">.AI</span>
-    </div>
-  </div>
-</Link>
-```
+### 1.2 — App Switcher no header
+Componente `AppSwitcher` adicionado ao `AppHeader.tsx` (e replicado nas outras duas plataformas):
+- Botão grid (ícone 9 pontos) que abre dropdown com 3 cards: Inventaria, Peticiona, Advoga.
+- Cada card tem ícone, nome, descrição curta e badge "Atual" na plataforma corrente.
+- Clique abre a outra plataforma em nova aba (`target="_blank"`), preservando a sessão atual.
+- URLs centralizadas em `src/config/ecosystem.ts` para fácil manutenção.
 
-Isso garante consistência visual com o footer da landing (que já usa o padrão `text-foreground` + `text-primary` para "Advocacy.AI").
+### 1.3 — Branding unificado
+- Footer/sidebar: manter "Um produto Advocacy.AI" (já existe na tela de Auth).
+- Adicionar mesmo selo no `AppSidebar` e `Landing` para reforçar pertencimento ao hub.
 
-## Notas técnicas
+### 1.4 — Próximos passos (fora deste plano)
+Replicar `AppSwitcher` + `ecosystem.ts` nos projetos Peticiona.AI e Advoga.AI (mudanças paralelas nos outros projetos Lovable). Será proposto separadamente.
 
-- A cor "verde limão" da identidade já existe como token `--primary` (HSL 73 100% 51%), aplicada via classe `text-primary`. Não é necessário criar nova cor.
-- "Branco" será aplicado via `text-white` (Tailwind) para garantir branco puro independente do tema do sidebar.
-- Fonte serifada (`font-serif`) mantém alinhamento com o wordmark "Advocacy.AI" já existente no rodapé.
-- Nenhuma outra página é afetada; o `AppHeader` mobile mantém seu próprio rótulo.
+---
+
+## Parte 2 — Auditoria completa (Segurança + Lógica)
+
+### 2.1 — Segurança (backend)
+- Rodar `supabase--linter` e `security--run_security_scan`.
+- Revisar RLS da tabela `peticao_audit_logs` (única tabela existente) — verificar se INSERT está bloqueado para clientes (deve ser, edge function usa service role).
+- Validar edge function `gerar-peticao`:
+  - Verificação de JWT em código.
+  - Validação de input com Zod.
+  - Rate limiting (atualmente ausente?).
+  - Vazamento de prompt/secrets em mensagens de erro.
+  - Headers CORS corretos.
+- Confirmar que `LOVABLE_API_KEY` e demais secrets nunca são expostos ao cliente.
+- Verificar `vite.config.ts`: hard-coded fallbacks de SUPABASE_URL/KEY são publishable (OK), mas confirmar.
+
+### 2.2 — Segurança (frontend)
+- `ProtectedRoute`: confirmar que não há flicker de conteúdo protegido durante loading.
+- Auth: validar fluxo de reset de senha (`/reset-password` existe).
+- Sanitização de input em formulários (Triagem, Partilha, ITCMD, Petição).
+- Logs no console que possam vazar dados sensíveis (CPFs, valores).
+
+### 2.3 — Lógica de negócio
+- **`partilha-calculator.ts`**: revisar cálculo conforme Art. 1.829 CC (ordem de vocação, regimes de bens, concorrência cônjuge × descendentes).
+- **`CalculadoraItcmd.tsx`**: verificar alíquotas e base de cálculo (varia por UF — confirmar se está parametrizado).
+- **`triagem-utils.ts`** + **`diligencias-investigativas.ts`**: revisar árvore de decisão judicial vs extrajudicial (Art. 610 CPC, Resolução 35/2007 CNJ).
+- **`gerar-peticao` edge function**: revisar prompt do sistema, garantir que persona "Defensor PhD" + regras anti-alucinação estão íntegras, validar streaming SSE.
+- Estados de loading e erro consistentes em todas as páginas.
+
+### 2.4 — Performance/UX
+- Lazy loading de rotas pesadas (`React.lazy` nas páginas de calculadora/petição).
+- Verificar bundle size.
+- Imagens: `srcset` já aplicado no logo; verificar outras imagens.
+
+### 2.5 — Entregável
+Relatório em `/mnt/documents/auditoria-inventaria.md` com:
+- Achados por severidade (crítico / alto / médio / baixo).
+- Correções aplicadas inline durante a auditoria (bugs óbvios).
+- Recomendações para itens que exigem decisão de produto.
+
+---
+
+## Detalhes técnicos
+
+**Arquivos a criar:**
+- `src/config/ecosystem.ts` — URLs e metadata das 3 plataformas.
+- `src/components/layout/AppSwitcher.tsx` — Dropdown com cards.
+
+**Arquivos a editar:**
+- `src/components/layout/AppHeader.tsx` — Inserir `<AppSwitcher />`.
+- `src/components/layout/AppSidebar.tsx` — Reforçar selo Advocacy.AI (opcional).
+
+**Sem mudanças de schema** — não é necessária migração SQL para esta etapa.
+
+**Auditoria:** sem mudanças de arquitetura; apenas correções pontuais e relatório.
+
+---
+
+## Ordem de execução
+1. Criar `ecosystem.ts` + `AppSwitcher` + integrar no header.
+2. Executar auditoria (linter + scan + revisão manual de calculadoras e edge function).
+3. Aplicar correções críticas/altas encontradas.
+4. Gerar relatório final.
