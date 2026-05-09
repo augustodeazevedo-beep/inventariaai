@@ -1,39 +1,44 @@
-## Mudanças na Sidebar
+## Reestilizar logo Inventaria.AI + adicionar Fin.AI ao switcher
 
-### 1. "BY ADVOCACY.AI" abaixo do logo
-No `AppSidebar.tsx`, adicionar uma linha de texto pequena, em maiúsculas com tracking aumentado, logo abaixo do wordmark "Inventaria.AI" — mesmo estilo da referência enviada (Advoga.AI):
+### Parte 1 — Reestilizar o ícone Inventaria.AI
 
-```
-Inventaria.AI
-BY ADVOCACY.AI
-```
+Alinhar o badge ao padrão visual de Advoga.AI e Peticiona.AI: quadrado dark de cantos arredondados, ícone-silhueta com glow neon, borda iluminada sutil.
 
-- Texto: `text-[9px] uppercase tracking-[0.25em] text-sidebar-foreground/60`
-- Mantém o selo "Um produto Advocacy.AI" no rodapé (não duplica visualmente, pois um é header e outro rodapé — mas posso remover o do rodapé se preferir).
+**Geração do novo ícone** (via `imagegen--edit_image`, usando o atual + Advoga/Peticiona como referência de estilo):
+- Conceito: letra **"I" estilizada** (mantém DNA da Inventaria, diferencia das outras 3).
+- Tratamento: silhueta limpa em **verde-ciano (#00d4ff → #4ade80)** com glow neon.
+- Fundo: dark `#0a0e1a` arredondado com leve borda iluminada; padrão de circuito sutil ao fundo.
+- Aspect ratio 1:1, transparência fora do badge.
 
-### 2. Sidebar colapsável (modo ícones)
+**Arquivos atualizados** (mesmos caminhos — sem mudança de código nos componentes):
+- `public/images/logo-inventaria-icon.png` (mestre)
+- `public/images/logo-inventaria-icon-64.png` / `-128` / `-192` / `-256` / `-384.png` (regerados via redimensionamento PIL a partir do mestre)
 
-Migrar `AppSidebar` para o padrão **shadcn `Sidebar` com `collapsible="icon"`**, que já suporta nativamente o colapso para uma barra estreita mostrando apenas os ícones.
+### Parte 2 — Adicionar Fin.AI ao ecossistema
 
-**Arquivos afetados:**
-- `src/App.tsx` — envolver `<AppLayout />` com `<SidebarProvider>`.
-- `src/components/layout/AppLayout.tsx` — remover wrapper manual; usar estrutura do shadcn.
-- `src/components/layout/AppSidebar.tsx` — reescrever usando `Sidebar`, `SidebarContent`, `SidebarMenu`, `SidebarMenuButton` etc., com `collapsible="icon"`.
-- `src/components/layout/AppHeader.tsx` — adicionar `<SidebarTrigger />` à esquerda (visível em desktop) para alternar expandido ↔ ícones. Em mobile mantém o menu existente.
+`Fin.AI` (gestão financeira pessoal inteligente) → `https://finai-byadvocacyia.lovable.app`.
 
-**Comportamento:**
-- Estado inicial: expandida (72 px → `w-72`).
-- Colapsada: barra estreita (`w-14`) mostrando apenas ícones do menu; logo reduz para o ícone 64 px sem o wordmark; selo "Um produto Advocacy.AI" some.
-- Tooltip nos ícones quando colapsada (nativo do shadcn).
-- Estado persistido via cookie (padrão do shadcn `SidebarProvider`).
+**`src/config/ecosystem.ts`:**
+- Acrescentar `"finai"` ao tipo `EcosystemAppId`.
+- Importar ícone `Wallet` (lucide-react).
+- Adicionar entrada:
+  ```ts
+  {
+    id: "finai",
+    name: "Fin",
+    suffix: ".AI",
+    description: "Gestão financeira pessoal inteligente",
+    url: "https://finai-byadvocacyia.lovable.app",
+    icon: Wallet,
+    accent: "text-primary",
+  }
+  ```
 
-### 3. Não muda
-- Cores, tokens de design, lógica de rotas, ícones do menu.
-- Mobile (drawer existente continua igual).
+**`src/components/layout/AppSwitcher.tsx`:** verificar se itera `ECOSYSTEM_APPS.map(...)` (esperado). Caso o dropdown tenha altura/grid fixos, ajustar para acomodar 4 cards empilhados verticalmente sem cortar.
 
----
+### Sem mudanças
+- Schema, autenticação, rotas, lógica de negócio.
+- Wordmark + tagline "By Advocacy.AI" (já no padrão correto).
 
-**Detalhes técnicos**
-- Usar `useSidebar()` para esconder o wordmark quando `state === "collapsed"`.
-- `SidebarTrigger` no header (sempre visível) para garantir que o usuário pode reabrir.
-- Manter `NavLink`/`useLocation` para destacar rota ativa (já existe).
+### Replicação cross-app (próximo passo, fora deste plano)
+Adicionar Fin.AI à lista do switcher também em Inventaria/Peticiona/Advoga/Fin separadamente.
