@@ -1,10 +1,12 @@
 import { Outlet } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
+import { SidebarCollapseProvider } from "./SidebarCollapseContext";
 
 export function AppLayout() {
   return (
-    <div className="flex min-h-screen bg-page-pattern">
+    <SidebarCollapseProvider>
+      <div className="flex min-h-screen bg-page-pattern">
       <div className="flex min-h-screen w-full bg-page-overlay">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-h-screen">
@@ -39,6 +41,7 @@ export function AppLayout() {
           </footer>
         </div>
       </div>
-    </div>
+      </div>
+    </SidebarCollapseProvider>
   );
 }
