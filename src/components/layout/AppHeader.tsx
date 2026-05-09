@@ -1,9 +1,10 @@
-import { Menu, Scale, Calculator, FileSearch, FileText, ArrowLeftRight, Building2, Home, LogOut } from "lucide-react";
+import { Menu, Scale, Calculator, FileSearch, FileText, ArrowLeftRight, Building2, Home, LogOut, PanelLeft } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { AppSwitcher } from "./AppSwitcher";
+import { useSidebarCollapse } from "./SidebarCollapseContext";
 
 const mobileMenuItems = [
   { label: "Início", icon: Home, href: "/" },
@@ -30,6 +31,7 @@ export function AppHeader() {
   const [email, setEmail] = useState<string | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { toggle: toggleSidebar } = useSidebarCollapse();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setEmail(data.session?.user.email ?? null));
@@ -50,6 +52,13 @@ export function AppHeader() {
         <div className="flex items-center gap-3">
           <button className="lg:hidden" onClick={() => setMenuOpen(!menuOpen)}>
             <Menu className="w-5 h-5" />
+          </button>
+          <button
+            className="hidden lg:inline-flex items-center justify-center w-8 h-8 rounded-md hover:bg-sidebar-accent/40 transition-colors"
+            onClick={toggleSidebar}
+            aria-label="Alternar barra lateral"
+          >
+            <PanelLeft className="w-4 h-4" />
           </button>
           <Link to="/" className="lg:hidden flex items-center justify-center">
             <img src="/images/logo-inventaria-icon.png" alt="Inventaria.AI" width={32} height={32} className="w-8 h-8 object-contain" />
