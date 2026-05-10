@@ -38,15 +38,12 @@ export function calcularPartilha(state: PartilhaState): ResultadoPartilha {
     ["conjuge", "companheiro"].includes(h.parentesco)
   );
   
-  let quotaHeranca = heranca;
-  
   // Se existe testamento, separar parte disponível
-  let parteDisponivel = 0;
+  // Nota: parte disponível é distribuída pelo testador a beneficiários externos não modelados aqui.
   let parteLegitimaTotal = heranca;
   
   if (state.testamento.existeTestamento && herdeirosAtivos.length > 0) {
-    parteDisponivel = heranca * 0.5; // 50% é disponível
-    parteLegitimaTotal = heranca * 0.5; // 50% é legítima
+    parteLegitimaTotal = heranca * 0.5; // 50% é legítima; 50% disponível fica com legatários do testamento
   }
   
   const quadroIndividual = herdeirosAtivos.map(h => {
@@ -106,8 +103,13 @@ export function calcularPartilha(state: PartilhaState): ResultadoPartilha {
     };
   });
   
+  // When a testament exists the quadroIndividual only covers the legítima (50%).
+  // The parte disponível (50%) also incurs ITCMD via testamentary legatees not modelled here.
+  // Use calcularItcmdProgressivo(heranca) as the full-estate estimate in that case.
   const estimativaItcmd = state.preferencias.simularItcmd
-    ? quadroIndividual.reduce((sum, q) => sum + q.itcmd, 0)
+    ? (state.testamento.existeTestamento
+        ? calcularItcmdProgressivo(heranca)
+        : quadroIndividual.reduce((sum, q) => sum + q.itcmd, 0))
     : 0;
   
   return {
