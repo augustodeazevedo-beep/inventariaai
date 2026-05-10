@@ -249,7 +249,7 @@ export default function GeradorPeticao() {
             </Button>
 
             <p className="text-[10px] text-muted-foreground text-center">
-              Powered by Lovable AI • Modelo: Gemini 3 Flash
+              Powered by Lovable AI • Modelo: Gemini 2.5 Flash
             </p>
           </CardContent>
         </Card>
