@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { ItcmdState, Beneficiario, BemItcmd, FatoGerador, TipoBem, ResidenciaType } from "@/types/inventario";
 import { formatCurrency, calcularItcmdMarginal } from "@/lib/partilha-calculator";
 import { Calculator, Trash2, Scale, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 const UF_LIST = [
   "AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA",
@@ -106,6 +107,14 @@ export default function CalculadoraItcmd() {
     state.bens.some((b) => b.uf === "RS");
 
   const calcular = () => {
+    // Validar que a soma dos percentuais dos beneficiários é 100%
+    if (Math.abs(totalPercentual - 100) > 0.01) {
+      toast.error(
+        `A soma dos percentuais deve ser 100%. Atual: ${totalPercentual.toFixed(2)}%`
+      );
+      return;
+    }
+
     const totalMonte = state.bens.reduce((s, b) => s + b.valor * (b.fracao / 100), 0);
     const acumulado = state.doacoesAcumuladas12m ?? 0;
 
