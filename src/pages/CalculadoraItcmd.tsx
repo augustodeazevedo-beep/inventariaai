@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ItcmdState, Beneficiario, BemItcmd, FatoGerador, TipoBem, ResidenciaType } from "@/types/inventario";
 import { formatCurrency, calcularItcmdMarginal } from "@/lib/partilha-calculator";
-import { Calculator, Trash2, Scale, AlertTriangle } from "lucide-react";
+import { Calculator, Trash2, Scale, AlertTriangle, Printer } from "lucide-react";
 import { toast } from "sonner";
 
 const UF_LIST = [
@@ -100,33 +100,25 @@ export default function CalculadoraItcmd() {
 
   const totalPercentual = state.beneficiarios.reduce((s, b) => s + b.percentual, 0);
 
-  // Reactive RS detection — triggers alert before calculation
   const temRsNoForm =
     state.ufDoador === "RS" ||
     state.beneficiarios.some((b) => b.uf === "RS") ||
     state.bens.some((b) => b.uf === "RS");
 
   const calcular = () => {
-    // Validar que a soma dos percentuais dos beneficiários é 100%
     if (Math.abs(totalPercentual - 100) > 0.01) {
-      toast.error(
-        `A soma dos percentuais deve ser 100%. Atual: ${totalPercentual.toFixed(2)}%`
-      );
+      toast.error(`A soma dos percentuais deve ser 100%. Atual: ${totalPercentual.toFixed(2)}%`);
       return;
     }
-
     const totalMonte = state.bens.reduce((s, b) => s + b.valor * (b.fracao / 100), 0);
     const acumulado = state.doacoesAcumuladas12m ?? 0;
-
     const ufImovPrincipal = state.bens.find((b) => b.natureza === "imovel")?.uf;
-
     const beneficiariosResultado: ResultadoBenef[] = state.beneficiarios.map((ben) => {
       const valor = totalMonte * (ben.percentual / 100);
       const ufCompetente = ufImovPrincipal ?? state.ufDoador;
       const { itcmd, aliquotaEfetiva } = calcularComAcumulado(valor, acumulado);
       return { nome: ben.nome, percentual: ben.percentual, valor, itcmd, aliquotaEfetiva, ufCompetente };
     });
-
     setResultado({
       totalMonte,
       acumulado,
@@ -162,7 +154,6 @@ export default function CalculadoraItcmd() {
         </p>
       </div>
 
-      {/* RS alert — reactive to form input */}
       {temRsNoForm && alertRS}
 
       {/* Fato Gerador */}
@@ -207,15 +198,11 @@ export default function CalculadoraItcmd() {
             <Select value={state.ufDoador} onValueChange={(v) => update({ ufDoador: v })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {UF_LIST.map((uf) => (
-                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                ))}
+                {UF_LIST.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         </div>
-
-        {/* Accumulated donations — only relevant for doação */}
         {state.fatoGerador === "doacao" && (
           <div className="mt-4 space-y-1.5 max-w-sm">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -241,29 +228,18 @@ export default function CalculadoraItcmd() {
           <h2 className="font-bold uppercase flex items-center gap-2">
             👥 {state.fatoGerador === "doacao" ? "Donatários" : "Herdeiros / Legatários"}
           </h2>
-          <button onClick={addBeneficiario} className="text-sm text-info font-semibold hover:underline">
-            + ADICIONAR
-          </button>
+          <button onClick={addBeneficiario} className="text-sm text-info font-semibold hover:underline">+ ADICIONAR</button>
         </div>
         <div className="space-y-3">
           {state.beneficiarios.map((ben) => (
             <div key={ben.id} className="border rounded-lg p-4 space-y-3">
               <div className="flex gap-3 items-end">
                 <div className="flex-1 space-y-1.5">
-                  <Input
-                    value={ben.nome}
-                    onChange={(e) => updateBeneficiario(ben.id, { nome: e.target.value })}
-                    placeholder="Nome do beneficiário"
-                  />
+                  <Input value={ben.nome} onChange={(e) => updateBeneficiario(ben.id, { nome: e.target.value })} placeholder="Nome do beneficiário" />
                 </div>
                 <div className="w-20 space-y-1.5">
                   <div className="flex items-center">
-                    <Input
-                      type="number"
-                      value={ben.percentual}
-                      onChange={(e) => updateBeneficiario(ben.id, { percentual: parseFloat(e.target.value) || 0 })}
-                      className="text-center"
-                    />
+                    <Input type="number" value={ben.percentual} onChange={(e) => updateBeneficiario(ben.id, { percentual: parseFloat(e.target.value) || 0 })} className="text-center" />
                     <span className="ml-1 text-sm text-muted-foreground">%</span>
                   </div>
                 </div>
@@ -284,9 +260,7 @@ export default function CalculadoraItcmd() {
                 <Select value={ben.uf} onValueChange={(v) => updateBeneficiario(ben.id, { uf: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {UF_LIST.map((uf) => (
-                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                    ))}
+                    {UF_LIST.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -304,12 +278,8 @@ export default function CalculadoraItcmd() {
       {/* Monte Partilhável */}
       <div className="section-card">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-bold uppercase flex items-center gap-2">
-            🏛️ Monte Partilhável (Acervo)
-          </h2>
-          <button onClick={addBem} className="text-sm text-info font-semibold hover:underline">
-            + Adicionar Bem
-          </button>
+          <h2 className="font-bold uppercase flex items-center gap-2">🏛️ Monte Partilhável (Acervo)</h2>
+          <button onClick={addBem} className="text-sm text-info font-semibold hover:underline">+ Adicionar Bem</button>
         </div>
         <div className="space-y-4">
           {state.bens.map((bem) => (
@@ -317,21 +287,12 @@ export default function CalculadoraItcmd() {
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <div className="space-y-1.5 md:col-span-1">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">Descrição do Bem</Label>
-                  <Input
-                    placeholder="Ex: Ações, Imóvel, Veículo..."
-                    value={bem.descricao}
-                    onChange={(e) => updateBem(bem.id, { descricao: e.target.value })}
-                  />
+                  <Input placeholder="Ex: Ações, Imóvel, Veículo..." value={bem.descricao} onChange={(e) => updateBem(bem.id, { descricao: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs uppercase tracking-wide text-muted-foreground">Fração (%)</Label>
                   <div className="flex items-center">
-                    <Input
-                      type="number"
-                      value={bem.fracao}
-                      onChange={(e) => updateBem(bem.id, { fracao: parseFloat(e.target.value) || 0 })}
-                      className="text-center"
-                    />
+                    <Input type="number" value={bem.fracao} onChange={(e) => updateBem(bem.id, { fracao: parseFloat(e.target.value) || 0 })} className="text-center" />
                     <span className="ml-1 text-sm text-muted-foreground">%</span>
                   </div>
                 </div>
@@ -340,9 +301,7 @@ export default function CalculadoraItcmd() {
                   <Select value={bem.natureza} onValueChange={(v) => updateBem(bem.id, { natureza: v as TipoBem })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {tipoOptions.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                      ))}
+                      {tipoOptions.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -361,24 +320,15 @@ export default function CalculadoraItcmd() {
                   <Select value={bem.uf} onValueChange={(v) => updateBem(bem.id, { uf: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {UF_LIST.map((uf) => (
-                        <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                      ))}
+                      {UF_LIST.map((uf) => <SelectItem key={uf} value={uf}>{uf}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="flex items-end gap-3 mt-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-                    Valor de Mercado — 100% (R$)
-                  </Label>
-                  <Input
-                    type="number"
-                    value={bem.valor || ""}
-                    onChange={(e) => updateBem(bem.id, { valor: parseFloat(e.target.value) || 0 })}
-                    placeholder="0"
-                  />
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Valor de Mercado — 100% (R$)</Label>
+                  <Input type="number" value={bem.valor || ""} onChange={(e) => updateBem(bem.id, { valor: parseFloat(e.target.value) || 0 })} placeholder="0" />
                 </div>
                 {state.bens.length > 1 && (
                   <Button variant="ghost" size="icon" onClick={() => removeBem(bem.id)} className="text-destructive">
@@ -391,7 +341,6 @@ export default function CalculadoraItcmd() {
         </div>
       </div>
 
-      {/* Calcular */}
       <button
         onClick={calcular}
         className="w-full py-4 rounded-xl bg-info text-info-foreground font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-info/90 transition-colors"
@@ -400,10 +349,17 @@ export default function CalculadoraItcmd() {
         Calcular Partilha e Competência Tributária
       </button>
 
-      {/* Resultado */}
       {resultado && (
         <div className="section-card animate-fade-in space-y-4">
-          <h2 className="font-serif text-xl font-bold">Resultado do Cálculo ITCMD</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-serif text-xl font-bold">Resultado do Cálculo ITCMD</h2>
+            <button
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium border rounded-md hover:bg-accent transition-colors print:hidden"
+            >
+              <Printer className="w-4 h-4" /> Imprimir PDF
+            </button>
+          </div>
 
           {resultado.temRS && alertRS}
 
@@ -437,9 +393,7 @@ export default function CalculadoraItcmd() {
                   <div className="text-right">
                     <p className="text-sm">Valor (mercado): R$ {formatCurrency(b.valor)}</p>
                     <p className="text-sm font-bold text-destructive">ITCMD: R$ {formatCurrency(b.itcmd)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Alíquota efetiva: {b.aliquotaEfetiva.toFixed(2)}%
-                    </p>
+                    <p className="text-xs text-muted-foreground">Alíquota efetiva: {b.aliquotaEfetiva.toFixed(2)}%</p>
                   </div>
                 </div>
               </div>
@@ -454,6 +408,8 @@ export default function CalculadoraItcmd() {
           </div>
         </div>
       )}
+
+      <style>{`@media print { .section-card:not(:last-of-type) { display: none !important; } button.print\\:hidden, .print\\:hidden { display: none !important; } }`}</style>
     </div>
   );
 }
