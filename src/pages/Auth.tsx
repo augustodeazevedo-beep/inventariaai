@@ -20,9 +20,11 @@ export default function Auth() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
+      console.log("[Auth] getSession on mount:", { hasSession: !!data.session, user: data.session?.user.email });
       if (data.session) navigate("/home", { replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      console.log("[Auth] onAuthStateChange:", _e, { hasSession: !!session, user: session?.user.email });
       if (session) navigate("/home", { replace: true });
     });
     return () => sub.subscription.unsubscribe();
@@ -56,9 +58,11 @@ export default function Auth() {
 
   const handleGoogle = async () => {
     setLoading(true);
+    console.log("[Auth] starting Google OAuth, redirect_uri:", `${window.location.origin}/auth`);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth`,
     });
+    console.log("[Auth] signInWithOAuth result:", result);
     if (result.error) {
       toast.error("Erro ao entrar com Google");
       setLoading(false);
