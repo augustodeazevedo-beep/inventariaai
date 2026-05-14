@@ -106,6 +106,7 @@ export function StepHerdeiros({ herdeiros, onChange }: Props) {
                     size="icon"
                     onClick={() => removeHerdeiro(h.id)}
                     className="text-destructive hover:text-destructive"
+                    aria-label="Excluir herdeiro"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

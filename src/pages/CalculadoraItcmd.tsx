@@ -244,7 +244,7 @@ export default function CalculadoraItcmd() {
                   </div>
                 </div>
                 {state.beneficiarios.length > 1 && (
-                  <Button variant="ghost" size="icon" onClick={() => removeBeneficiario(ben.id)} className="text-destructive">
+                  <Button variant="ghost" size="icon" onClick={() => removeBeneficiario(ben.id)} className="text-destructive" aria-label="Excluir beneficiário">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}
@@ -331,7 +331,7 @@ export default function CalculadoraItcmd() {
                   <Input type="number" value={bem.valor || ""} onChange={(e) => updateBem(bem.id, { valor: parseFloat(e.target.value) || 0 })} placeholder="0" />
                 </div>
                 {state.bens.length > 1 && (
-                  <Button variant="ghost" size="icon" onClick={() => removeBem(bem.id)} className="text-destructive">
+                  <Button variant="ghost" size="icon" onClick={() => removeBem(bem.id)} className="text-destructive" aria-label="Excluir bem">
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 )}

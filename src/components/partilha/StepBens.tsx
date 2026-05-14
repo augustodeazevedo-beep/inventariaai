@@ -151,7 +151,7 @@ export function StepBens({ bens, dividas, onChange }: Props) {
                 </div>
               </div>
               <div className="flex justify-end mt-3">
-                <Button variant="ghost" size="icon" onClick={() => removeBem(bem.id)} className="text-destructive hover:text-destructive">
+                <Button variant="ghost" size="icon" onClick={() => removeBem(bem.id)} className="text-destructive hover:text-destructive" aria-label="Excluir bem">
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
