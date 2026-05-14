@@ -333,7 +333,7 @@ export default function TriagemInventario() {
               <div key={h.id} className="border border-border rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-foreground">Herdeiro {idx + 1}</span>
-                  <Button variant="ghost" size="icon" onClick={() => removeHerdeiro(h.id)}>
+                  <Button variant="ghost" size="icon" onClick={() => removeHerdeiro(h.id)} aria-label="Excluir herdeiro">
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>

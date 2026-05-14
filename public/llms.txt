@@ -1,0 +1,19 @@
+# Inventaria.AI
+
+> Plataforma jurídica brasileira com IA para sucessões e planejamento patrimonial — triagem de inventário, cálculo de partilha, ITCMD, comparador doação×inventário, holding familiar e geração de petições em padrão DPE.RS.
+
+Inventaria.AI é a vertente de sucessões da Advocacy.AI. Cobre todo o ciclo do inventário: do diagnóstico de via (judicial/extrajudicial) e natureza (consensual/litigiosa) até a minuta da petição inicial, com fundamentação no Código Civil (art. 1.829) e no CPC (art. 610).
+
+## Pages
+
+- [Home](/): visão geral do produto e acesso rápido aos módulos.
+- [Triagem de Inventário](/triagem): vocação hereditária, definição de via, checklist documental e diligências investigativas.
+- [Calculadora de Partilha](/partilha): meação, quinhões, sub-rogações e colação.
+- [Calculadora de ITCMD](/itcmd): apuração do imposto causa mortis (LC 227/2026, EC 132/23).
+- [Comparador Doação × Inventário](/comparador): cenários estratégicos comparados.
+- [Gerador de Petição (IA)](/peticao): minutas de petição em padrão DPE.RS via Gemini.
+- [Planejamento Holding](/holding): estruturação patrimonial familiar.
+
+## Optional
+
+- [Login / Criar conta](/auth): autenticação por e-mail/senha ou Google.

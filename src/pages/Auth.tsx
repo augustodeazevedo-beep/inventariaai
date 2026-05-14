@@ -74,9 +74,10 @@ export default function Auth() {
       <div className="absolute inset-0 bg-page-overlay" />
       <div className="relative w-full max-w-md">
         <Link to="/" className="flex flex-col items-center gap-3 mb-6">
-          <img src="/images/logo-inventaria-full.png" alt="Inventaria.AI by Advocacy.AI" className="h-32 w-auto object-contain drop-shadow-2xl" />
+          <img src="/images/logo-inventaria-full.png" alt="Logo Inventaria.AI by Advocacy.AI" className="h-32 w-auto object-contain drop-shadow-2xl" />
         </Link>
         <Card className="p-6 backdrop-blur-sm bg-card/80 border-border">
+          <h1 className="sr-only">Entrar ou criar conta no Inventaria.AI</h1>
           <div className="flex gap-2 mb-6 p-1 rounded-lg bg-muted">
             <button
               onClick={() => setMode("login")}
@@ -140,7 +141,7 @@ export default function Auth() {
           rel="noopener noreferrer"
           className="mt-5 flex items-center justify-center gap-2 opacity-80 hover:opacity-100 transition-opacity"
         >
-          <img src={advocacyLogo} alt="Advocacy.AI" className="w-7 h-7 object-contain" />
+          <img src={advocacyLogo} alt="Logo Advocacy.AI" className="w-7 h-7 object-contain" />
           <span className="text-xs text-muted-foreground">
             Um produto <span className="text-foreground font-semibold">Advocacy<span className="text-primary">.AI</span></span>
           </span>

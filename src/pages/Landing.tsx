@@ -241,7 +241,7 @@ export default function Landing() {
             >
               <img
                 src={advocacyLogo}
-                alt="Advocacy.AI"
+                alt="Logo Advocacy.AI"
                 width={56}
                 height={56}
                 loading="lazy"
