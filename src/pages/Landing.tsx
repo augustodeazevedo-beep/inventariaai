@@ -14,6 +14,9 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AppSwitcher } from "@/components/layout/AppSwitcher";
+import { ECOSYSTEM_APPS } from "@/config/ecosystem";
+import { ExternalLink } from "lucide-react";
 import advocacyLogo from "@/assets/advocacy-ai-logo.png";
 
 const modulos = [
@@ -61,6 +64,25 @@ const features = [
 export default function Landing() {
   return (
     <div className="space-y-24 pb-12">
+      {/* TOP BAR — Ecosystem switcher */}
+      <div className="sticky top-0 z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 backdrop-blur-md bg-background/70 border-b border-border/40 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="font-serif font-bold text-sm">
+            <span className="text-foreground">Inventaria</span>
+            <span className="text-primary">.AI</span>
+          </span>
+          <span className="hidden sm:inline text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            by Advocacy.AI
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <AppSwitcher />
+          <Button asChild size="sm" variant="ghost" className="text-xs">
+            <Link to="/auth">Entrar</Link>
+          </Button>
+        </div>
+      </div>
+
       {/* HERO */}
       <section className="relative overflow-hidden rounded-2xl border border-border bg-card/30 backdrop-blur-sm px-6 py-16 lg:py-24 lg:px-12">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/10 pointer-events-none" />
@@ -104,6 +126,59 @@ export default function Landing() {
               </Link>
             </Button>
           </div>
+        </div>
+      </section>
+
+      {/* ECOSSISTEMA ADVOCACY.AI */}
+      <section className="space-y-10">
+        <div className="text-center space-y-4 max-w-3xl mx-auto">
+          <span className="tag-chip">Ecossistema Advocacy.AI</span>
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+            Uma marca. Seis cérebros.
+            <span className="block">Um só ecossistema.</span>
+          </h2>
+          <p className="text-muted-foreground leading-relaxed">
+            A <span className="text-foreground font-semibold">Advocacy<span className="text-primary">.AI</span></span> é o{" "}
+            <span className="text-foreground font-semibold">Legal AI Lab</span> que projeta, opera e evolui uma suíte
+            AI-Native de produtos jurídicos — cada um especializado em um eixo crítico da advocacia moderna:{" "}
+            <span className="text-foreground font-medium">captação, gestão, documentos, patrimônio, finanças e estudo</span>.
+            Diferentes funções, mesma identidade visual e mesma inteligência conectada.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {ECOSYSTEM_APPS.map((app) => {
+            const Icon = app.icon;
+            return (
+              <a
+                key={app.id}
+                href={app.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative overflow-hidden section-card hover:border-primary/40 transition-all"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                <div className="relative space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-lg bg-secondary border border-border flex items-center justify-center group-hover:border-primary/40 group-hover:bg-primary/5 transition-colors">
+                      <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="tag-chip inline-flex items-center gap-1">
+                      {app.chip}
+                      <ExternalLink className="w-3 h-3" />
+                    </span>
+                  </div>
+                  <h3 className="font-serif text-xl font-bold">
+                    <span className="text-foreground">{app.name}</span>
+                    <span className="text-primary">{app.suffix}</span>
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {app.description}
+                  </p>
+                </div>
+              </a>
+            );
+          })}
         </div>
       </section>
 
