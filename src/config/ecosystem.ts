@@ -8,6 +8,7 @@ export interface EcosystemApp {
   name: string;
   suffix: string;
   description: string;
+  chip: string;
   url: string;
   icon: LucideIcon;
   accent: string; // tailwind text color class
@@ -20,7 +21,8 @@ export const ECOSYSTEM_APPS: EcosystemApp[] = [
     id: "advocase",
     name: "Advocase",
     suffix: ".AI",
-    description: "CRM · SDR — Capte, qualifique e converta clientes com inteligência preditiva.",
+    description: "Capte, qualifique e converta clientes com inteligência preditiva.",
+    chip: "CRM · SDR",
     url: "https://advocaseai-byadvocacyai.lovable.app",
     icon: Target,
     accent: "text-primary",
@@ -29,7 +31,8 @@ export const ECOSYSTEM_APPS: EcosystemApp[] = [
     id: "advoga",
     name: "Advoga",
     suffix: ".AI",
-    description: "Gestão — Processos, prazos e escritório operando em fluxo contínuo.",
+    description: "Processos, prazos e escritório operando em fluxo contínuo.",
+    chip: "GESTÃO",
     url: "https://advogaai-byadvocacyai.lovable.app",
     icon: Briefcase,
     accent: "text-primary",
@@ -38,7 +41,8 @@ export const ECOSYSTEM_APPS: EcosystemApp[] = [
     id: "peticiona",
     name: "Peticiona",
     suffix: ".AI",
-    description: "Documental — Petições, minutas e contratos gerados em minutos, sob seu padrão.",
+    description: "Petições, minutas e contratos gerados em minutos, sob seu padrão.",
+    chip: "DOCUMENTAL",
     url: "https://peticionaai-byadvocacyai.lovable.app",
     icon: FileText,
     accent: "text-primary",
@@ -47,7 +51,8 @@ export const ECOSYSTEM_APPS: EcosystemApp[] = [
     id: "inventaria",
     name: "Inventaria",
     suffix: ".AI",
-    description: "Patrimonial — Planejamento sucessório e patrimonial guiado por dados.",
+    description: "Planejamento sucessório e patrimonial guiado por dados.",
+    chip: "PATRIMONIAL",
     url: "https://inventariaai-byadvocacyai.lovable.app",
     icon: Scale,
     accent: "text-primary",
@@ -56,7 +61,8 @@ export const ECOSYSTEM_APPS: EcosystemApp[] = [
     id: "fin",
     name: "Fin",
     suffix: ".AI",
-    description: "Financeiro — Conciliação, honorários e fluxo de caixa em tempo real.",
+    description: "Conciliação, honorários e fluxo de caixa em tempo real.",
+    chip: "FINANCEIRO",
     url: "https://finai-byadvocacyai.lovable.app",
     icon: Wallet,
     accent: "text-primary",
@@ -65,7 +71,8 @@ export const ECOSYSTEM_APPS: EcosystemApp[] = [
     id: "study",
     name: "Study",
     suffix: ".AI",
-    description: "Educação — Estudos jurídicos personalizados com IA adaptativa.",
+    description: "Estudos jurídicos personalizados com IA adaptativa.",
+    chip: "EDUCAÇÃO",
     url: "https://studyai-byadvocacyai.lovable.app",
     icon: GraduationCap,
     accent: "text-primary",
